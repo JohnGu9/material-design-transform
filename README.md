@@ -9,6 +9,10 @@ This component provide material design(v2) transform for html element under `rea
 1. SharedAxis.
 2. FadeThrough.
 
+<img src="./document/preview.gif" alt="preview" width="480"/>
+
+- Tip: you can continue to toggle animation even animation is running.
+
 ## Install
 
 ```console
@@ -37,11 +41,12 @@ const [id, setId] = React.useState(0);
 
 ## Property: keyId
 
-Change [keyId]() to toggle switch animation.
+Change [keyId]() to toggle switch animation. Only keyId change will toggle animation.
 
 ## Alarm
 
-Switch animation state toggle by properties changing and transitionend event of opacity. If opacity animate to 0 and toggle transitionend event that mean exit animation end. And if opacity animate to 1 and toggle transitionend event that mean enter animation end. Break transitionend event of opacity may break the component function.
+- New component only render before the old component exit animation completed.
+- Switch animation state is toggled by properties changing and transitionend event of opacity. If opacity animate to 0 and toggle transitionend event that mean exit animation end. And if opacity animate to 1 and toggle transitionend event that mean enter animation end. Break transitionend event of opacity may break the component function.
 
 ## Container transform
 

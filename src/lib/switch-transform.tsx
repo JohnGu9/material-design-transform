@@ -44,16 +44,15 @@ export function buildSwitchTransform<T extends keyof JSX.IntrinsicElements, Elem
       if (!state.exitStyle) {
         state.children = children;
       }
-      const extendsStyle: React.CSSProperties = state.enterLock
+      const extendsStyle = state.enterLock
         ? (state.enterPrepareStyle ?? enterAnimation(transform))
-        : (state.exitStyle ?? enterAnimation(transform));
+        : state.exitStyle;
       const onTransitionEnd: React.TransitionEventHandler<Element> = (event) => {
         if (event.target === innerRef.current &&
           event.propertyName === 'opacity') {
           if (state.enterLock) {
             state.enterLock = false;
-            if (state.exitStyle)
-              updateNotify();
+            updateNotify();
           } else if (state.exitStyle) {
             state.exitStyle = undefined;
             state.enterPrepareStyle = enterPrepare(transform);

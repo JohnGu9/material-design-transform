@@ -1,6 +1,6 @@
 {
   "name": "material-design-transform",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": false,
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -12,6 +12,8 @@
     "dist",
     "README.md"
   ],
+  "license": "MIT",
+  "author": "johngu",
   "scripts": {
     "start": "react-scripts start",
     "test": "react-scripts test",
