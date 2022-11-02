@@ -1,25 +1,25 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { FadeThrough, SharedAxis, SharedAxisTransform } from './lib';
+import "./App.css";
 
 function App() {
+  const [id, setId] = React.useState(0);
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className='App'>
+      <span className='Center'>
+        <button onClick={() => setId(value => value + 1)}>change</button>
+      </span>
+      SharedAxis:
+      <SharedAxis transform={SharedAxisTransform.fromBottomToTop} keyId={id}>{id}</SharedAxis>
+      <SharedAxis transform={SharedAxisTransform.fromTopToBottom} keyId={id}>{id}</SharedAxis>
+      <SharedAxis transform={SharedAxisTransform.fromRightToLeft} keyId={id}>{id}</SharedAxis>
+      <SharedAxis transform={SharedAxisTransform.fromLeftToRight} keyId={id}>{id}</SharedAxis>
+      <SharedAxis transform={SharedAxisTransform.fromFrontToBack} keyId={id}>{id}</SharedAxis>
+      <SharedAxis transform={SharedAxisTransform.fromBackToFront} keyId={id}>{id}</SharedAxis>
+      FadeThrough:
+      <FadeThrough keyId={id}>{id}</FadeThrough>
     </div>
+
   );
 }
 
