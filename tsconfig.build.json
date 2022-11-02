@@ -1,0 +1,16 @@
+{
+	"compilerOptions": {
+		"strict": true,
+		"jsx": "react-jsx",
+		"declaration": true,
+		"skipLibCheck": true,
+		"esModuleInterop": true,
+		"outDir": "dist",
+		"target": "es5",
+		"module": "esnext",
+		"moduleResolution": "node"
+	},
+	"include": [
+		"src/lib"
+	]
+}
