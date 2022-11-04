@@ -7,17 +7,15 @@ export default {
   component: FadeThrough,
 } as ComponentMeta<typeof FadeThrough>;
 
-function buildFadeThrough(): ComponentStory<typeof FadeThrough> {
-  return (args) => {
-    const [id, setId] = useState(0);
-    return (
-      <div className='App'>
-        <span className='Center'>
-          <button onClick={() => setId(value => value + 1)}>change</button>
-        </span>
-        <FadeThrough keyId={id} {...args}>{id}</FadeThrough>
-      </div>);
-  };
+const Template: ComponentStory<typeof FadeThrough> = (args) => {
+  const [id, setId] = useState(0);
+  return (
+    <div className='App'>
+      <span className='Center'>
+        <button onClick={() => setId(value => value + 1)}>change</button>
+      </span>
+      <FadeThrough keyId={id} {...args}>{id}</FadeThrough>
+    </div>);
 }
 
-export const Primary = buildFadeThrough().bind({});
+export const Primary = Template.bind({});

@@ -6,8 +6,8 @@ This component provide material design(v2) transform for html element under `rea
 
 ## Feature
 
-1. SharedAxis.
-2. FadeThrough.
+1. [SharedAxis](https://m2.material.io/design/motion/the-motion-system.html#shared-axis).
+2. [FadeThrough](https://m2.material.io/design/motion/the-motion-system.html#fade-through).
 
 <img src="./document/preview.gif" alt="preview" width="480"/>
 

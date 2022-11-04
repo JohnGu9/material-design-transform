@@ -3,6 +3,8 @@ import { createElement, useEffect, useMemo, useRef, useState } from 'react';
 import { useRefComposer } from "react-ref-composer";
 import { createComponent, TagToElementType } from './common';
 
+// @TODO: cancel animation feature
+
 type AnimationTransition = {
   duration: number, // unit: ms, should never be 0
   curve: DataType.EasingFunction,
@@ -20,13 +22,13 @@ export type Transform = {
 };
 
 export type SwitchTransformProps = {
-  keyId?: React.Key | null | undefined,
+  keyId?: unknown,
   transform: Transform,
 };
 
 export function buildSwitchTransform<T extends keyof JSX.IntrinsicElements, Element = TagToElementType<T>>(tag: T) {
   return createComponent<Element, SwitchTransformProps>(
-    function Render({ keyId, transform, style, children, onTransitionEnd: ote,
+    function ({ keyId, transform, style, children, onTransitionEnd: ote,
       ...props }, ref) {
       const composeRefs = useRefComposer();
       const innerRef = useRef<HTMLElement>(null);
