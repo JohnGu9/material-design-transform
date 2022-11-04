@@ -26,6 +26,8 @@ export function buildContainerTransform<T extends keyof JSX.IntrinsicElements, E
       }
 
       useEffect(() => {
+        const overlay = overlays[keyId];
+        if (overlay !== undefined) throw Error(`keyId[${String(keyId)}] can't be reused under same ContainerTransformLayout`);
         overlays[keyId] = {
           tag, container,
           props: { style, ...props } as React.HTMLProps<HTMLElement>,
