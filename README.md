@@ -69,8 +69,12 @@ const [id, setId] = React.useState(undefined);
 
 - If ContainerTransformLayout's keyId `matches` this ContainerTransform's keyId, this ContainerTransform's container will be expanded with animation.
 - ContainerTransform's keyId should be `unique` under same ContainerTransformLayout.
+- ContainerTransform's children should be available to render two dom at the same time.
+- ContainerTransform's `relative position` / `size` / `children` / `props` should be not change when animation is running.
 - ContainerTransformLayout should not have any [border](https://developer.mozilla.org/en-US/docs/Web/CSS/border) (but [outline](https://developer.mozilla.org/en-US/docs/Web/CSS/outline) is ok).
 - ContainerTransform should not have any [padding](https://developer.mozilla.org/en-US/docs/Web/CSS/padding) and any [border](https://developer.mozilla.org/en-US/docs/Web/CSS/border) (but [outline](https://developer.mozilla.org/en-US/docs/Web/CSS/outline) is ok).
+- ContainerTransform's animation `motion track` is different from origin material design because it only use css transition for animation that animation is limited by css.
+- ContainerTransform's `box-shadow` and `border-radius` can be animated.
 
 ## Property: keyId
 
@@ -79,11 +83,20 @@ Change [keyId]() to toggle switch animation. Only keyId change will toggle anima
 ## Alarm
 
 - New component only render before the old component exit animation completed.
-- Switch animation (SharedAxis/FadeThrough) state is toggled by properties changing and transitionend event of opacity. If opacity animate to 0 and toggle transitionend event that mean exit animation end. And if opacity animate to 1 and toggle transitionend event that mean enter animation end. Break transitionend event of opacity may break the component function.
+- Switch animation (SharedAxis / FadeThrough) state is toggled by properties changing and `transitionend` event of `opacity`. If opacity animate to 0 and toggle transitionend event that mean exit animation end. And if opacity animate to 1 and toggle transitionend event that mean enter animation end. Break transitionend event of opacity may break the component function.
 
 ## Material Design v3
 
 Waiting google release precise motion guide.
+
+## Interactive Demo
+
+```console
+git clone https://github.com/JohnGu9/MaterialDesignTransform.git
+cd MaterialDesignTransform
+npm i
+npm run storybook
+```
 
 ## Component dependencies
 

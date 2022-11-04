@@ -56,11 +56,13 @@ type Overlay = { tag: string, props: React.HTMLProps<HTMLElement>, element: HTML
 const ContainerTransformLayoutContext = createContext({
   keyId: undefined as Key | undefined,
   overlays: {} as { [key: Key]: Overlay | undefined },
+  notifyUpdate: () => { },
 });
 
 export type ContainerTransformLayoutProps = {
   keyId?: Key,
   overlayStyle?: CSSProperties,
+  overlayTransitionProperty?: string,
   onScrimClick?: React.MouseEventHandler<HTMLDivElement>,
 };
 
@@ -72,6 +74,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
       keyId,
       onScrimClick,
       overlayStyle = defaultOverlayStyle,
+      overlayTransitionProperty = 'left, right, top, bottom, width, height, box-shadow, border-radius',
       children,
       style,
       ...props }, ref) {
@@ -132,6 +135,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
           value={{
             keyId: state.keyId,
             overlays: state.overlays,
+            notifyUpdate,
           }}>
           {children}
         </ContainerTransformLayoutContext.Provider>,
@@ -166,10 +170,16 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
             style: {
               ...overlay.props.style,
               position: 'absolute',
-              transition: overlayTransition,
+              transitionProperty: overlayTransitionProperty,
+              transitionDuration: '250ms',
+              transitionTimingFunction: Curves.StandardEasing,
               ...(overlayShow
                 ? overlayStyle
-                : relativeCenterPosition(overlay.element, innerRef.current!)),
+                : relativeCenterPosition(
+                  overlay.element,
+                  innerRef.current!,
+                  overlayStyle,
+                  overlayTransitionProperty)),
             },
           }, [
             <div key={0}
@@ -179,7 +189,9 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
                 ...centerStyle,
                 pointerEvents: overlayShow ? 'none' : undefined,
                 opacity: overlayShow ? 0 : 1,
-                transition: overlayShow ? 'opacity 60ms linear 60ms' : 'opacity 133ms linear 117ms',
+                transition: overlayShow
+                  ? 'opacity 60ms linear 60ms'
+                  : 'opacity 133ms linear 117ms',
               }}>
               {overlay.props.children}
             </div>,
@@ -190,7 +202,9 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
                 ...centerStyle,
                 pointerEvents: overlayShow ? undefined : 'none',
                 opacity: overlayShow ? 1 : 0,
-                transition: overlayShow ? 'opacity 120ms linear 125ms' : 'opacity 50ms linear 67ms',
+                transition: overlayShow
+                  ? 'opacity 120ms linear 125ms'
+                  : 'opacity 50ms linear 67ms',
               }}>
               {overlay.container}
             </div>
@@ -203,7 +217,10 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
 
 const fullSizeStyle: React.CSSProperties = {
   position: 'absolute',
-  inset: 0,
+  left: 0,
+  top: 0,
+  width: '100%',
+  height: '100%',
 }
 
 const centerStyle: React.CSSProperties = {
@@ -211,8 +228,6 @@ const centerStyle: React.CSSProperties = {
   justifyContent: 'center',
   alignItems: 'center',
 }
-
-const overlayTransition = `left 250ms ${Curves.StandardEasing}, top 250ms ${Curves.StandardEasing}, width 250ms ${Curves.StandardEasing}, height 250ms ${Curves.StandardEasing}, box-shadow 250ms ${Curves.StandardEasing}, border-radius 250ms ${Curves.StandardEasing}`;
 
 const defaultOverlayStyle: React.CSSProperties = {
   left: 0,
@@ -223,16 +238,17 @@ const defaultOverlayStyle: React.CSSProperties = {
   borderRadius: 0,
 }
 
-function relativeCenterPosition(child: HTMLElement, parent: HTMLElement): React.CSSProperties {
+function relativeCenterPosition(child: HTMLElement, parent: HTMLElement, overlayStyle: React.CSSProperties, transitionProperty: string): React.CSSProperties {
   const c = child.getBoundingClientRect();
   const p = parent.getBoundingClientRect();
-
   return {
-    left: c.left - p.left,
-    top: c.top - p.top,
-    width: c.width,
-    height: c.height,
-    willChange: 'left, top, width, height, boxShadow, borderRadius',
+    left: 'left' in overlayStyle ? c.left - p.left : undefined,
+    top: 'top' in overlayStyle ? c.top - p.top : undefined,
+    right: 'right' in overlayStyle ? p.right - c.right : undefined,
+    bottom: 'bottom' in overlayStyle ? p.bottom - c.bottom : undefined,
+    width: 'width' in overlayStyle ? c.width : undefined,
+    height: 'height' in overlayStyle ? c.height : undefined,
+    willChange: transitionProperty,
   };
 }
 
