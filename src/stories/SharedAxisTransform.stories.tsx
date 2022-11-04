@@ -13,7 +13,7 @@ function buildSharedAxis(...transforms: SharedAxisTransform[]): ComponentStory<t
     return (
       <div className='App'>
         <span className='Center'>
-          <button onClick={() => setId(value => value + 1)}>change</button>
+          <button onClick={() => setId(id === 0 ? 1 : 0)}>change</button>
         </span>
         {transforms.map(value =>
           <SharedAxis key={value} transform={value}

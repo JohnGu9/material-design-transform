@@ -12,7 +12,7 @@ const Template: ComponentStory<typeof FadeThrough> = (args) => {
   return (
     <div className='App'>
       <span className='Center'>
-        <button onClick={() => setId(value => value + 1)}>change</button>
+        <button onClick={() => setId(id === 0 ? 1 : 0)}>change</button>
       </span>
       <FadeThrough keyId={id} {...args}>{id}</FadeThrough>
     </div>);

@@ -40,8 +40,12 @@ export function buildSwitchTransform<T extends keyof JSX.IntrinsicElements, Elem
       const updateNotify = () => setTicker(value => !value);
 
       if (state.keyId !== keyId) {
-        state.keyId = keyId;
         state.exitStyle ??= exitAnimation(transform);
+      } else {// state.keyId === keyId
+        if (state.exitStyle) {
+          state.exitStyle = undefined;
+          state.enterLock = true;
+        }
       }
       if (!state.exitStyle) {
         state.children = children;
@@ -50,12 +54,16 @@ export function buildSwitchTransform<T extends keyof JSX.IntrinsicElements, Elem
         ? (state.enterPrepareStyle ?? enterAnimation(transform))
         : state.exitStyle;
       const onTransitionEnd: React.TransitionEventHandler<Element> = (event) => {
-        if (event.target === innerRef.current &&
+        const { current } = innerRef;
+        if (event.target === current &&
           event.propertyName === 'opacity') {
-          if (state.enterLock) {
+          if (current.style.opacity === '1') {
+            // enter end
             state.enterLock = false;
             updateNotify();
-          } else if (state.exitStyle) {
+          } else if (current.style.opacity === '0') {
+            // exit end
+            state.keyId = keyId;
             state.exitStyle = undefined;
             state.enterPrepareStyle = enterPrepare(transform);
             state.enterLock = true;
@@ -95,6 +103,7 @@ function enterPrepare({ enter: { transform } }: Transform): React.CSSProperties 
 
 function enterAnimation({ enter: { transform, opacity } }: Transform): React.CSSProperties {
   return {
+    opacity: 1,
     transition: `transform ${transform.duration}ms ${transform.curve} ${transform.delay}ms, opacity ${opacity.duration}ms ${opacity.curve} ${opacity.delay}ms`,
   };
 }

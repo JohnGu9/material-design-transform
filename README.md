@@ -75,6 +75,7 @@ const [id, setId] = React.useState(undefined);
 - ContainerTransform should not have any [padding](https://developer.mozilla.org/en-US/docs/Web/CSS/padding) and any [border](https://developer.mozilla.org/en-US/docs/Web/CSS/border) (but [outline](https://developer.mozilla.org/en-US/docs/Web/CSS/outline) is ok).
 - ContainerTransform's animation `motion track` is different from origin material design because it only use css transition for animation that animation is limited by css.
 - ContainerTransform's `box-shadow` and `border-radius` can be animated.
+- By default ContainerTransform will animate to match ContainerTransformLayout size and position, but you can edit [overlayStyle](./src/stories/ContainerTransform.stories.tsx) of ContainerTransformLayout to custom animation target.
 
 ## Property: keyId
 
