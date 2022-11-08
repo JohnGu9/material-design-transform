@@ -99,3 +99,30 @@ const Template0: ComponentStory<typeof ContainerTransform> = (args) => {
 }
 
 export const OverlayStyle = Template0.bind({});
+
+const Template1: ComponentStory<typeof ContainerTransform> = (args) => {
+  const [id, setId] = useState(0 as number | undefined);
+  return (
+    <div className="main">
+      <div className="buttons-bar">
+        <button onClick={() => setId(id === undefined ? 0 : undefined)}>{id === undefined ? 'open' : 'close'}</button>
+      </div>
+      <ContainerTransformLayout
+        keyId={id}
+        className="container-transform-layout"
+        onScrimClick={action('onScrimClick')}>
+        <ContainerTransform
+          mock="Mock"
+          container={<div className='full-size'>Container</div>}
+          {...args}
+          keyId={0}>
+          <div className="container">
+            ContainerTransform
+          </div>
+        </ContainerTransform>
+      </ContainerTransformLayout>
+    </div>
+  );
+}
+
+export const Mock = Template1.bind({});

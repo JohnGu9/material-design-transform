@@ -1,4 +1,4 @@
-import { createContext, createElement, CSSProperties, Fragment, useEffect, useMemo, useRef } from "react";
+import React, { createContext, createElement, CSSProperties, Fragment, useEffect, useMemo, useRef } from "react";
 import { useRefComposer } from "react-ref-composer";
 import { createComponent, Curves, TagToElementType } from "./common";
 import { useOverlayTransform, useOverlayTransformLayout } from "./overlay-transform";
@@ -6,6 +6,7 @@ import { useOverlayTransform, useOverlayTransformLayout } from "./overlay-transf
 type Key = string | number | symbol;
 export type ContainerTransformProps = {
   keyId: Key,
+  mock?: React.ReactNode,
   container?: React.ReactNode,
 };
 
@@ -13,12 +14,12 @@ export const ContainerTransform = buildContainerTransform('div');
 
 export function buildContainerTransform<T extends keyof JSX.IntrinsicElements, Element = TagToElementType<T>>(tag: T) {
   return createComponent<Element, ContainerTransformProps>(
-    function ({ keyId, container, style, ...props }, ref) {
+    function ({ keyId, mock, container, style, ...props }, ref) {
       const composeRefs = useRefComposer();
       const innerRef = useRef<HTMLElement>(null);
       const isOpened = useOverlayTransform(keyId, ContainerTransformLayoutContext, () => {
         return {
-          tag, container,
+          tag, container, mock,
           props: { style, ...props } as React.HTMLProps<HTMLElement>,
           element: innerRef.current!,
         };
@@ -37,7 +38,11 @@ export function buildContainerTransform<T extends keyof JSX.IntrinsicElements, E
   );
 }
 
-type Overlay = { tag: string, props: React.HTMLProps<HTMLElement>, element: HTMLElement, container: React.ReactNode };
+type Overlay = {
+  tag: string, props: React.HTMLProps<HTMLElement>, element: HTMLElement,
+  mock?: React.ReactNode,
+  container: React.ReactNode
+};
 
 const ContainerTransformLayoutContext = createContext({
   keyId: undefined as Key | undefined,
@@ -152,13 +157,12 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
                   ? 'opacity 60ms linear 60ms'
                   : 'opacity 133ms linear 117ms',
               }}>
-              {overlay.props.children}
+              {overlay.mock ?? overlay.props.children}
             </div>,
             <div key={1}
               ref={containerRef}
               style={{
                 ...fullSizeStyle,
-                ...centerStyle,
                 pointerEvents: overlayShow ? undefined : 'none',
                 opacity: overlayShow ? 1 : 0,
                 transition: overlayShow
