@@ -23,12 +23,19 @@ export type Transform = {
 
 export type SwitchTransformProps = {
   keyId?: unknown,
+  switchCancelable?: boolean, // switch can be cancel before exit animation complete
   transform: Transform,
 };
 
 export function buildSwitchTransform<T extends keyof JSX.IntrinsicElements, Element = TagToElementType<T>>(tag: T) {
   return createComponent<Element, SwitchTransformProps>(
-    function ({ keyId, transform, style, children, onTransitionEnd: ote,
+    function ({
+      keyId,
+      switchCancelable = true,
+      transform,
+      style,
+      children,
+      onTransitionEnd: ote,
       ...props }, ref) {
       const composeRefs = useRefComposer();
       const innerRef = useRef<HTMLElement>(null);
@@ -41,7 +48,7 @@ export function buildSwitchTransform<T extends keyof JSX.IntrinsicElements, Elem
 
       if (state.keyId !== keyId) {
         state.exitStyle ??= exitAnimation(transform);
-      } else {// state.keyId === keyId
+      } else if (switchCancelable) {// state.keyId === keyId
         if (state.exitStyle) {
           state.exitStyle = undefined;
           state.enterLock = true;
@@ -57,11 +64,12 @@ export function buildSwitchTransform<T extends keyof JSX.IntrinsicElements, Elem
         const { current } = innerRef;
         if (event.target === current &&
           event.propertyName === 'opacity') {
-          if (current.style.opacity === '1') {
+          const { style: { opacity } } = current;
+          if (opacity === '1') {
             // enter end
             state.enterLock = false;
             updateNotify();
-          } else if (current.style.opacity === '0') {
+          } else if (opacity === '0') {
             // exit end
             state.keyId = keyId;
             state.exitStyle = undefined;

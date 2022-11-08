@@ -20,11 +20,11 @@ const Template: ComponentStory<typeof ContainerTransform> = (args) => {
       </div>
       <ContainerTransformLayout
         keyId={id}
-        style={containerTransformLayoutStyle}
+        className="container-transform-layout"
         onScrimClick={action('onScrimClick')}>
         <ContainerTransform
-          container={<div style={fullSizeCenter}>Container0</div>}
-          style={{ backgroundColor: 'white', outline: '1px solid black', }}
+          container={<div className='full-size'>Container0</div>}
+          style={{ backgroundColor: 'white', outline: '1px solid black' }}
           {...args}
           keyId={0}>
           <div className="container">
@@ -33,8 +33,8 @@ const Template: ComponentStory<typeof ContainerTransform> = (args) => {
         </ContainerTransform>
         <div style={{ height: 32 }} />
         <ContainerTransform
-          container={<div style={fullSizeCenter}>Container1</div>}
-          style={{ backgroundColor: 'white', outline: 'dotted', }}
+          container={<div className='full-size'>Container1</div>}
+          style={{ backgroundColor: 'white', outline: 'dotted' }}
           {...args}
           keyId={1}>
           <div className="container">
@@ -43,11 +43,11 @@ const Template: ComponentStory<typeof ContainerTransform> = (args) => {
         </ContainerTransform>
         <div style={{ height: 32 }} />
         <ContainerTransform
-          container={<div style={fullSizeCenter}>Container2</div>}
+          container={<div className='full-size'>Container2</div>}
           style={{
             backgroundColor: 'rgba(186, 186, 186, 1)',
             borderRadius: '10px',
-            boxShadow: '0px 11px 15px -7px rgba(0, 0, 0, 0.2), 0px 24px 38px 3px rgba(0, 0, 0, 0.14), 0px 9px 46px 8px rgba(0, 0, 0, 0.12)'
+            boxShadow: '0px 11px 15px -7px rgba(0, 0, 0, 0.2), 0px 24px 38px 3px rgba(0, 0, 0, 0.14), 0px 9px 46px 8px rgba(0, 0, 0, 0.12)',
           }}
           {...args}
           keyId={2}>
@@ -71,17 +71,17 @@ const Template0: ComponentStory<typeof ContainerTransform> = (args) => {
       </div>
       <ContainerTransformLayout
         keyId={id}
-        style={containerTransformLayoutStyle}
+        className="container-transform-layout"
         onScrimClick={action('onScrimClick')}
         overlayStyle={{
           bottom: 10,
           right: 10,
           width: 100,
           height: 100,
-          borderRadius: 20,
+          borderRadius: 50,
         }}>
         <ContainerTransform
-          container={<div style={fullSizeCenter}>Container</div>}
+          container={<div className='full-size'>Container</div>}
           style={{
             backgroundColor: 'rgba(186, 186, 186, 1)',
             borderRadius: '10px',
@@ -99,12 +99,3 @@ const Template0: ComponentStory<typeof ContainerTransform> = (args) => {
 }
 
 export const OverlayStyle = Template0.bind({});
-
-const containerTransformLayoutStyle = {
-  outline: 'dotted', padding: 32, margin: 16
-};
-
-const fullSizeCenter = {
-  display: 'flex', justifyContent: 'center', alignItems: 'center',
-  height: '100%', width: '100%',
-}

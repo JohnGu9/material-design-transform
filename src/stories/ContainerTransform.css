@@ -15,3 +15,17 @@
     justify-content: center;
     align-items: center;
 }
+
+.full-size {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+}
+
+.container-transform-layout {
+    outline: dotted;
+    padding: 32px;
+    margin: 16px;
+}

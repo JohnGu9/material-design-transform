@@ -3,6 +3,7 @@ import { buildSwitchTransform } from "./switch-transform";
 
 export type FadeThroughProps = {
   keyId?: React.Key | null | undefined,
+  switchCancelable?: boolean, // switch can be cancel before exit animation complete
 };
 
 export const FadeThrough = buildFadeThrough('div');

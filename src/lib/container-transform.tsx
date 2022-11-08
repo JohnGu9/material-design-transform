@@ -1,6 +1,7 @@
-import { createContext, createElement, CSSProperties, Fragment, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, createElement, CSSProperties, Fragment, useEffect, useMemo, useRef } from "react";
 import { useRefComposer } from "react-ref-composer";
 import { createComponent, Curves, TagToElementType } from "./common";
+import { useOverlayTransform, useOverlayTransformLayout } from "./overlay-transform";
 
 type Key = string | number | symbol;
 export type ContainerTransformProps = {
@@ -15,27 +16,13 @@ export function buildContainerTransform<T extends keyof JSX.IntrinsicElements, E
     function ({ keyId, container, style, ...props }, ref) {
       const composeRefs = useRefComposer();
       const innerRef = useRef<HTMLElement>(null);
-      const context = useContext(ContainerTransformLayoutContext);
-      const { overlays } = context;
-      const isOpened = context.keyId === keyId;
-
-      const overlay = overlays[keyId];
-      if (overlay !== undefined) {
-        overlay.container = container;
-        overlay.props = { style, ...props } as React.HTMLProps<HTMLElement>;
-      }
-
-      useEffect(() => {
-        const overlay = overlays[keyId];
-        if (overlay !== undefined) throw Error(`keyId[${String(keyId)}] can't be reused under same ContainerTransformLayout`);
-        overlays[keyId] = {
+      const isOpened = useOverlayTransform(keyId, ContainerTransformLayoutContext, () => {
+        return {
           tag, container,
           props: { style, ...props } as React.HTMLProps<HTMLElement>,
           element: innerRef.current!,
         };
-        return () => { overlays[keyId] = undefined; }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-      }, [keyId, overlays]);
+      });
 
       return createElement(tag, {
         style: {
@@ -50,13 +37,11 @@ export function buildContainerTransform<T extends keyof JSX.IntrinsicElements, E
   );
 }
 
-type AnimationState = boolean | undefined;
 type Overlay = { tag: string, props: React.HTMLProps<HTMLElement>, element: HTMLElement, container: React.ReactNode };
 
 const ContainerTransformLayoutContext = createContext({
   keyId: undefined as Key | undefined,
   overlays: {} as { [key: Key]: Overlay | undefined },
-  notifyUpdate: () => { },
 });
 
 export type ContainerTransformLayoutProps = {
@@ -78,41 +63,18 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
       children,
       style,
       ...props }, ref) {
-      const state = useMemo(() => {
-        return {
-          keyId: undefined as Key | undefined,
-          animationState: undefined as AnimationState,
-          overlays: {} as { [key: Key]: Overlay },
-        };
-      }, []);
       const composeRefs = useRefComposer();
       const innerRef = useRef<HTMLElement>(null);
       const scrimRef = useRef<HTMLDivElement>(null);
       const overlayRef = useRef<HTMLElement>(null);
       const originRef = useRef<HTMLDivElement>(null);
       const containerRef = useRef<HTMLDivElement>(null);
-      const [, setTicker] = useState(false);
-      const notifyUpdate = () => { setTicker(value => !value); };
+      const overlays = useMemo(() => { return {} as { [key: Key]: Overlay }; }, []);
+      const state = useOverlayTransformLayout(keyId, overlays);
+      const { overlay, animationState, onEnter, onExited } = state;
 
-      if (state.keyId !== undefined) {
-        if (state.keyId !== keyId) {
-          state.animationState = false;
-        } else { // state.keyId === keyId
-          if (state.animationState === false)
-            state.animationState = true;
-        }
-      }
-
-      const overlay = state.keyId !== undefined ? state.overlays[state.keyId] : undefined;
       const hasOverlay = overlay !== undefined;
-      const overlayShow = state.animationState === true;
-
-      useEffect(() => {
-        if (state.keyId === undefined && keyId !== undefined) {
-          state.keyId = keyId;
-          notifyUpdate();
-        }
-      }, [keyId, state.keyId, state]);
+      const overlayShow = animationState === true;
 
       useEffect(() => {
         if (hasOverlay) {
@@ -120,10 +82,10 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
           overlayRef.current?.getBoundingClientRect();
           originRef.current?.getBoundingClientRect();
           containerRef.current?.getBoundingClientRect();
-          state.animationState = true;
-          notifyUpdate();
+          onEnter();
         }
-      }, [hasOverlay, state.keyId, state]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [hasOverlay]);
 
       return createElement(tag, {
         style: { position: 'relative', ...style },
@@ -134,8 +96,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
           key={0}
           value={{
             keyId: state.keyId,
-            overlays: state.overlays,
-            notifyUpdate,
+            overlays: overlays,
           }}>
           {children}
         </ContainerTransformLayoutContext.Provider>,
@@ -152,12 +113,10 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
                 : `opacity 250ms ${Curves.StandardEasing}`,
             }}
             onClick={onScrimClick}
-            onTransitionEnd={state.animationState === false
+            onTransitionEnd={animationState === false
               ? event => {
                 if (event.target === scrimRef.current && event.propertyName === 'opacity') {
-                  state.keyId = undefined;
-                  state.animationState = undefined;
-                  notifyUpdate();
+                  onExited();
                 }
               }
               : undefined} />
