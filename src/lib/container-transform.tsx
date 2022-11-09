@@ -1,4 +1,4 @@
-import React, { createContext, createElement, CSSProperties, Fragment, useEffect, useMemo, useRef } from "react";
+import React, { createContext, createElement, Fragment, useEffect, useMemo, useRef } from "react";
 import { useRefComposer } from "react-ref-composer";
 import { createComponent, Curves, TagToElementType } from "./common";
 import { Key, useOverlayTransform, useOverlayTransformLayout } from "./overlay-transform";
@@ -20,7 +20,7 @@ export function buildContainerTransform<T extends keyof JSX.IntrinsicElements, E
       keyId,
       mock,
       container,
-      containerFit = ContainerFit.both,
+      containerFit = ContainerFit.width,
       style,
       ...props }, ref) {
       const composeRefs = useRefComposer();
@@ -48,16 +48,12 @@ export function buildContainerTransform<T extends keyof JSX.IntrinsicElements, E
   );
 }
 
-
-export type OverlayStyle = {
-  position: {
-    /* number: 0 mean 0%, 1 mean 100% */
-    centerX: number,
-    centerY: number,
-    width: number,
-    height: number
-  },
-  css?: Omit<CSSProperties, 'left' | 'right' | 'top' | 'bottom' | 'width' | 'height' | 'transform'>
+export type OverlayPosition = {
+  /* number: 0 mean 0%, 1 mean 100% */
+  centerX: number, /* 50% mean center */
+  centerY: number,/* 50% mean center */
+  width: number,/* 100% mean full width */
+  height: number/* 100% mean full height */
 };
 
 export type Overlay = {
@@ -74,7 +70,8 @@ export const ContainerTransformLayoutContext = createContext({
 
 export type ContainerTransformLayoutProps = {
   keyId?: Key,
-  overlayStyle?: OverlayStyle,
+  overlayPosition?: OverlayPosition,
+  overlayStyle?: Omit<React.CSSProperties, 'left' | 'right' | 'top' | 'bottom' | 'width' | 'height' | 'transform'>,
   onScrimClick?: React.MouseEventHandler<HTMLDivElement>,
 };
 
@@ -85,6 +82,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
     function ({
       keyId,
       onScrimClick,
+      overlayPosition = defaultOverlayPosition,
       overlayStyle = defaultOverlayStyle,
       children,
       style,
@@ -163,7 +161,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
               transitionDuration: '250ms',
               transitionTimingFunction: Curves.StandardEasing,
               ...(overlayShow
-                ? overlayStyleToStyle(overlayStyle)
+                ? overlayStyleToStyle(overlayStyle, overlayPosition)
                 : relativeCenterPosition(
                   overlay.element,
                   innerRef.current!)),
@@ -191,28 +189,35 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
               ...centerStyle,
               position: 'absolute',
               transformOrigin: 'center',
+              left: '50%',
+              top: '50%',
+              width: '100%',
+              height: '100%',
               pointerEvents: overlayShow ? undefined : 'none',
               opacity: overlayShow ? 1 : 0,
               transform: overlayShow
-                ? distTransform(overlayStyle)
-                : srcTransform(overlay.element, innerRef.current!, overlayStyle, overlay.containerFit),
+                ? distTransform(overlayPosition)
+                : srcTransform(overlay.element, innerRef.current!, overlayPosition, overlay.containerFit),
               transition: overlayShow
                 ? showTransition
                 : hiddenTransition,
-              left: `${overlayStyle.position.centerX * 100}%`,
-              top: `${overlayStyle.position.centerY * 100}%`,
-              width: `${overlayStyle.position.width * 100}%`,
-              height: `${overlayStyle.position.height * 100}%`,
+
             }}>
             <div
               ref={containerWrapperRef}
               style={{
-                transitionProperty: 'height, width',
+                overflow: 'hidden',
+                transitionProperty: 'height, width, border-radius',
                 transitionDuration: '250ms',
                 transitionTimingFunction: Curves.StandardEasing,
+                borderRadius: overlayShow
+                  ? distBorderRadius(overlayStyle)
+                  : srcBorderRadius(overlay.element),
                 ...(overlayShow
-                  ? { width: '100%', height: '100%' }
-                  : compensateSize(overlay.element, innerRef.current!, overlayStyle, overlay.containerFit))
+                  ? {
+                    width: `${overlayPosition.width * 100}%`,
+                    height: `${overlayPosition.height * 100}%`,
+                  } : compensateSize(overlay.element, innerRef.current!, overlayPosition, overlay.containerFit))
               }}>
               {overlay.container}
             </div>
@@ -244,20 +249,19 @@ const centerStyle: React.CSSProperties = {
   alignItems: 'center',
 }
 
-const defaultOverlayStyle: OverlayStyle = {
-  position: {
-    centerX: 0.5,
-    centerY: 0.5,
-    width: 1,
-    height: 1,
-  },
-  css: {
-    boxShadow: '0px 11px 15px -7px rgba(0, 0, 0, 0.2), 0px 24px 38px 3px rgba(0, 0, 0, 0.14), 0px 9px 46px 8px rgba(0, 0, 0, 0.12)',
-    borderRadius: 0,
-  }
+const defaultOverlayPosition: OverlayPosition = {
+  centerX: 0.5,
+  centerY: 0.5,
+  width: 1,
+  height: 1,
 }
 
-function overlayStyleToStyle({ css, position }: OverlayStyle): React.CSSProperties {
+const defaultOverlayStyle = {
+  boxShadow: '0px 11px 15px -7px rgba(0, 0, 0, 0.2), 0px 24px 38px 3px rgba(0, 0, 0, 0.14), 0px 9px 46px 8px rgba(0, 0, 0, 0.12)',
+  borderRadius: 0,
+}
+
+function overlayStyleToStyle(css: React.CSSProperties, position: OverlayPosition): React.CSSProperties {
   return {
     ...css,
     left: `${position.centerX * 100}%`,
@@ -279,11 +283,11 @@ function relativeCenterPosition(child: HTMLElement, parent: HTMLElement): React.
   };
 }
 
-function distTransform({ position }: OverlayStyle) {
+function distTransform(position: OverlayPosition) {
   return `translate(${(position.centerX - 1) * 100}%, ${(position.centerY - 1) * 100}%) scale(1, 1)`;
 }
 
-function srcTransform(child: HTMLElement, parent: HTMLElement, { position }: OverlayStyle, containerFit: ContainerFit) {
+function srcTransform(child: HTMLElement, parent: HTMLElement, position: OverlayPosition, containerFit: ContainerFit) {
   const c = child.getBoundingClientRect();
   const p = parent.getBoundingClientRect();
   switch (containerFit) {
@@ -302,12 +306,12 @@ function srcTransform(child: HTMLElement, parent: HTMLElement, { position }: Ove
   }
 }
 
-function compensateSize(child: HTMLElement, parent: HTMLElement, { position }: OverlayStyle, containerFit: ContainerFit): React.CSSProperties {
+function compensateSize(child: HTMLElement, parent: HTMLElement, position: OverlayPosition, containerFit: ContainerFit): React.CSSProperties {
   switch (containerFit) {
     case ContainerFit.both:
       return {
-        width: '100%',
-        height: '100%',
+        width: `${position.width * 100}%`,
+        height: `${position.height * 100}%`,
       };
     case ContainerFit.height: {
       const c = child.getBoundingClientRect();
@@ -315,8 +319,8 @@ function compensateSize(child: HTMLElement, parent: HTMLElement, { position }: O
       const srcRatio = c.width / c.height;
       const distRatio = (p.width * position.width) / (p.height * position.height);
       return {
-        width: `${100 * srcRatio / distRatio}%`,
-        height: '100%',
+        width: `${position.width * srcRatio / distRatio * 100}%`,
+        height: `${position.height * 100}%`,
       };
     }
     case ContainerFit.width: {
@@ -325,9 +329,18 @@ function compensateSize(child: HTMLElement, parent: HTMLElement, { position }: O
       const srcRatio = c.width / c.height;
       const distRatio = (p.width * position.width) / (p.height * position.height);
       return {
-        width: '100%',
-        height: `${100 * distRatio / srcRatio}%`,
+        width: `${position.width * 100}%`,
+        height: `${position.height * distRatio / srcRatio * 100}%`,
       };
     }
   }
+}
+
+function srcBorderRadius(child: HTMLElement) {
+  const s = getComputedStyle(child);
+  return s.borderRadius;
+}
+
+function distBorderRadius(css: React.CSSProperties) {
+  return css?.borderRadius;
 }

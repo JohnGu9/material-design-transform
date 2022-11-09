@@ -139,6 +139,8 @@ const Template2: ComponentStory<typeof ContainerTransform> = (args) => {
       </div>
       <NewContainerTransformLayout
         keyId={id}
+        overlayPosition={{ centerX: 0.6, centerY: 0.6, width: 0.8, height: 0.8 }}
+        overlayStyle={{ borderRadius: 20 }}
         className="container-transform-layout"
         onScrimClick={action('onScrimClick')}>
         <ContainerTransform
@@ -148,17 +150,18 @@ const Template2: ComponentStory<typeof ContainerTransform> = (args) => {
           {...args}
           keyId={0}>
           <div className="container">
-            ContainerTransform0
+            ContainerFit.width
           </div>
         </ContainerTransform>
         <div style={{ height: 32 }} />
         <ContainerTransform
           container={container}
+          containerFit={ContainerFit.both}
           style={{ backgroundColor: 'white', outline: 'dotted' }}
           {...args}
           keyId={1}>
           <div className="container">
-            ContainerTransform1
+            ContainerFit.both
           </div>
         </ContainerTransform>
       </NewContainerTransformLayout>
