@@ -1,4 +1,4 @@
-import { Context, useContext, useEffect, useMemo, useState } from "react";
+import { Context, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 export type Key = string | number | symbol;
 export type AnimationState = true /* enter */ | false /* exit */ | undefined /* before enter */;
@@ -19,16 +19,16 @@ export function useOverlayTransformLayout<Overlay>(
   const overlay = keyId !== undefined ? overlays[keyId] : undefined;
   const [, setTicker] = useState(false);
   const notifyUpdate = () => { setTicker(value => !value); };
-  const onEnter = () => {
+  const onEnter = useCallback(() => {
     state.animationState = true;
     notifyUpdate();
-  };
-  const onExited = () => {
+  }, [state]);
+  const onExited = useCallback(() => {
     state.keyId = undefined;
     state.overlay = undefined;
     state.animationState = undefined;
     notifyUpdate();
-  };
+  }, [state]);
 
   if (state.keyId !== undefined) {
     if (state.keyId !== keyId) {
