@@ -1,6 +1,7 @@
 import { action } from '@storybook/addon-actions';
 import { ComponentMeta, ComponentStory } from '@storybook/react';
 import { useState } from 'react';
+import { elevationBoxShadow } from '../lib/common';
 import { ContainerTransform, ContainerTransformLayout, ContainerFit } from '../lib/container-transform';
 import "./ContainerTransform.css";
 
@@ -55,7 +56,7 @@ const Template: ComponentStory<typeof ContainerTransform> = (args) => {
           style={{
             backgroundColor: 'yellow',
             borderRadius: '10px',
-            boxShadow: '0px 11px 15px -7px rgba(0, 0, 0, 0.2), 0px 24px 38px 3px rgba(0, 0, 0, 0.14), 0px 9px 46px 8px rgba(0, 0, 0, 0.12)',
+            boxShadow: elevationBoxShadow(4),
           }}
           {...args}
           keyId={2}>
@@ -92,7 +93,7 @@ const Template0: ComponentStory<typeof ContainerTransform> = (args) => {
           style={{
             backgroundColor: 'yellow',
             borderRadius: '10px',
-            boxShadow: '0px 11px 15px -7px rgba(0, 0, 0, 0.2), 0px 24px 38px 3px rgba(0, 0, 0, 0.14), 0px 9px 46px 8px rgba(0, 0, 0, 0.12)'
+            boxShadow: elevationBoxShadow(4),
           }}
           {...args}
           keyId={0}>
@@ -121,7 +122,10 @@ const Template1: ComponentStory<typeof ContainerTransform> = (args) => {
         <ContainerTransform
           mock="Mock"
           container={container}
-          style={{ backgroundColor: 'white' }}
+          style={{
+            backgroundColor: 'white',
+            boxShadow: elevationBoxShadow(4),
+          }}
           {...args}
           keyId={0}>
           <div className="container">
@@ -173,6 +177,5 @@ const Template2: ComponentStory<typeof ContainerTransform> = (args) => {
     </div>
   );
 }
-
 
 export const containerFit = Template2.bind({});

@@ -169,9 +169,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
               transitionTimingFunction: Curves.StandardEasing,
               ...(overlayShow
                 ? overlayStyleToStyle(overlayStyle, overlayPosition)
-                : relativeCenterPosition(
-                  overlay.element,
-                  innerRef.current!)),
+                : relativeCenterPosition(overlay.element, innerRef.current!)),
               willChange: animationState === undefined ? 'left, top, width, height, box-shadow, border-radius' : undefined,
 
             },
@@ -191,6 +189,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
               {overlay.mock ?? overlay.props.children}
             </div>)
           : <Fragment key={2} />,
+        /* container */
         hasOverlay
           ? <div
             key={3}
@@ -208,9 +207,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
               transform: overlayShow
                 ? distTransform(overlayPosition)
                 : srcTransform(overlay.element, innerRef.current!, overlayPosition, overlay.containerFit),
-              transition: overlayShow
-                ? showTransition
-                : hiddenTransition,
+              transition: overlayShow ? showTransition : hiddenTransition,
               willChange: animationState === undefined ? 'pointer-events, opacity, transform, transition' : undefined,
             }}>
             <div
@@ -304,13 +301,11 @@ function srcTransform(child: HTMLElement, parent: HTMLElement, position: Overlay
       return `translate(${((c.left - p.left + c.width / 2) / p.width - 1) * 100}%, ${((c.top - p.top + c.height / 2) / p.height - 1) * 100}%) scale(${(c.width / p.width) / position.width}, ${(c.height / p.height) / position.height})`;
     case ContainerFit.width: {
       const ratio = (c.width / p.width) / position.width;
-      const originShift = (c.top - p.top + c.height / 2) / p.height - 1;
-      return `translate(${((c.left - p.left + c.width / 2) / p.width - 1) * 100}%, ${originShift * 100}%) scale(${ratio}, ${ratio})`;
+      return `translate(${((c.left - p.left + c.width / 2) / p.width - 1) * 100}%, ${((c.top - p.top + c.height / 2) / p.height - 1) * 100}%) scale(${ratio}, ${ratio})`;
     }
     case ContainerFit.height: {
       const ratio = (c.height / p.height) / position.height;
-      const originShift = (c.left - p.left + c.width / 2) / p.width - 1;
-      return `translate(${originShift * 100}%, ${((c.top - p.top + c.height / 2) / p.height - 1) * 100}%) scale(${ratio}, ${ratio})`;
+      return `translate(${((c.left - p.left + c.width / 2) / p.width - 1) * 100}%, ${((c.top - p.top + c.height / 2) / p.height - 1) * 100}%) scale(${ratio}, ${ratio})`;
     }
   }
 }

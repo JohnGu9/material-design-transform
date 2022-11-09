@@ -1,6 +1,6 @@
 import React, { createElement, CSSProperties, Fragment, useEffect, useMemo, useRef } from "react";
 import { useRefComposer } from "react-ref-composer";
-import { createComponent, Curves, TagToElementType } from "./common";
+import { createComponent, Curves, elevationBoxShadow, TagToElementType } from "./common";
 import { ContainerTransformLayoutContext, Overlay } from "./container-transform";
 import { Key, useOverlayTransformLayout } from "./overlay-transform";
 
@@ -30,8 +30,8 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
       const originRef = useRef<HTMLDivElement>(null);
       const containerRef = useRef<HTMLDivElement>(null);
       const overlays = useMemo(() => { return {} as { [key: Key]: Overlay }; }, []);
-      const state = useOverlayTransformLayout(keyId, overlays);
-      const { overlay, animationState, onEnter, onExited } = state;
+      const { overlay, animationState, onEnter, onExited,
+        keyId: currentKeyId } = useOverlayTransformLayout(keyId, overlays);
 
       const hasOverlay = overlay !== undefined;
       const overlayShow = animationState === true;
@@ -43,8 +43,14 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
           originRef.current?.getBoundingClientRect();
           containerRef.current?.getBoundingClientRect();
           onEnter();
+        } else if (animationState === false) {
+          const { current } = scrimRef;
+          if (current) {
+            const style = getComputedStyle(current);
+            if (style.opacity === '0') onExited();
+          }
         }
-      }, [hasOverlay, onEnter]);
+      }, [animationState, hasOverlay, onEnter, onExited]);
 
       return createElement(tag, {
         style: { position: 'relative', ...style },
@@ -54,7 +60,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
         <ContainerTransformLayoutContext.Provider
           key={0}
           value={{
-            keyId: state.keyId,
+            keyId: currentKeyId,
             overlays: overlays,
           }}>
           {children}
@@ -151,7 +157,7 @@ const defaultOverlayStyle: React.CSSProperties = {
   top: 0,
   width: '100%',
   height: '100%',
-  boxShadow: '0px 11px 15px -7px rgba(0, 0, 0, 0.2), 0px 24px 38px 3px rgba(0, 0, 0, 0.14), 0px 9px 46px 8px rgba(0, 0, 0, 0.12)',
+  boxShadow: elevationBoxShadow(24),
   borderRadius: 0,
 }
 
