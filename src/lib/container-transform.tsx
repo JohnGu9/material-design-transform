@@ -137,6 +137,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
               transition: overlayShow
                 ? `opacity 90ms ${Curves.Easing(0, 0)}`
                 : `opacity 250ms ${Curves.StandardEasing}`,
+              willChange: animationState === undefined ? 'pointer-events, opacity, transition' : undefined,
             }}
             onClick={onScrimClick}
             onTransitionEnd={animationState === false
@@ -165,6 +166,8 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
                 : relativeCenterPosition(
                   overlay.element,
                   innerRef.current!)),
+              willChange: animationState === undefined ? 'left, top, width, height, box-shadow, border-radius' : undefined,
+
             },
           },
             <div
@@ -177,6 +180,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
                 transition: overlayShow
                   ? 'opacity 60ms linear 60ms'
                   : 'opacity 133ms linear 117ms',
+                willChange: animationState === undefined ? 'pointer-events, opacity, transition' : undefined,
               }}>
               {overlay.mock ?? overlay.props.children}
             </div>)
@@ -201,7 +205,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
               transition: overlayShow
                 ? showTransition
                 : hiddenTransition,
-
+              willChange: animationState === undefined ? 'pointer-events, opacity, transform, transition' : undefined,
             }}>
             <div
               ref={containerWrapperRef}
@@ -214,10 +218,9 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
                   ? distBorderRadius(overlayStyle)
                   : srcBorderRadius(overlay.element),
                 ...(overlayShow
-                  ? {
-                    width: `${overlayPosition.width * 100}%`,
-                    height: `${overlayPosition.height * 100}%`,
-                  } : compensateSize(overlay.element, innerRef.current!, overlayPosition, overlay.containerFit))
+                  ? { width: `${overlayPosition.width * 100}%`, height: `${overlayPosition.height * 100}%` }
+                  : compensateSize(overlay.element, innerRef.current!, overlayPosition, overlay.containerFit)),
+                willChange: animationState === undefined ? 'height, width, border-radius' : undefined,
               }}>
               {overlay.container}
             </div>
@@ -279,7 +282,6 @@ function relativeCenterPosition(child: HTMLElement, parent: HTMLElement): React.
     top: `${(c.top - p.top + c.height / 2) / p.height * 100}%`,
     width: `${c.width / p.width * 100}%`,
     height: `${c.height / p.height * 100}%`,
-    willChange: 'left, top, width, height, box-shadow, border-radius',
   };
 }
 

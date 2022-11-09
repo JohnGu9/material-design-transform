@@ -53,7 +53,7 @@ const Template: ComponentStory<typeof ContainerTransform> = (args) => {
         <ContainerTransform
           container={<div className='full-size'>Container2</div>}
           style={{
-            backgroundColor: 'rgba(186, 186, 186, 1)',
+            backgroundColor: 'yellow',
             borderRadius: '10px',
             boxShadow: '0px 11px 15px -7px rgba(0, 0, 0, 0.2), 0px 24px 38px 3px rgba(0, 0, 0, 0.14), 0px 9px 46px 8px rgba(0, 0, 0, 0.12)',
           }}
@@ -90,7 +90,7 @@ const Template0: ComponentStory<typeof ContainerTransform> = (args) => {
         <ContainerTransform
           container={container}
           style={{
-            backgroundColor: 'rgba(186, 186, 186, 1)',
+            backgroundColor: 'yellow',
             borderRadius: '10px',
             boxShadow: '0px 11px 15px -7px rgba(0, 0, 0, 0.2), 0px 24px 38px 3px rgba(0, 0, 0, 0.14), 0px 9px 46px 8px rgba(0, 0, 0, 0.12)'
           }}
@@ -121,6 +121,7 @@ const Template1: ComponentStory<typeof ContainerTransform> = (args) => {
         <ContainerTransform
           mock="Mock"
           container={container}
+          style={{ backgroundColor: 'white' }}
           {...args}
           keyId={0}>
           <div className="container">
