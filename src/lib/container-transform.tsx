@@ -102,15 +102,21 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
       const overlayShow = animationState === true;
 
       useEffect(() => {
-        if (hasOverlay) {
+        if (hasOverlay && animationState === undefined) {
           scrimRef.current?.getBoundingClientRect();
           overlayRef.current?.getBoundingClientRect();
           originRef.current?.getBoundingClientRect();
           containerRef.current?.getBoundingClientRect();
           containerWrapperRef.current?.getBoundingClientRect();
           onEnter();
+        } else if (animationState === false) {
+          const { current } = scrimRef;
+          if (current) {
+            const style = getComputedStyle(current);
+            if (style.opacity === '0') onExited();
+          }
         }
-      }, [hasOverlay, onEnter]);
+      }, [hasOverlay, animationState, onEnter, onExited]);
 
       return createElement(tag, {
         style: { position: 'relative', ...style },
@@ -210,6 +216,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
             <div
               ref={containerWrapperRef}
               style={{
+                position: 'relative',
                 overflow: 'hidden',
                 transitionProperty: 'height, width, border-radius',
                 transitionDuration: '250ms',
