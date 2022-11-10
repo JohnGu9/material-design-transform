@@ -8,15 +8,15 @@ This component provide material design(v2) transform for html element under `rea
 
 1. [SharedAxis](https://m2.material.io/design/motion/the-motion-system.html#shared-axis).
 
-<img src="./document/preview-sharedaxis.gif" alt="preview" width="480"/>
+<img src="./document/preview-shared-axis.gif" alt="preview" width="480"/>
 
 2. [FadeThrough](https://m2.material.io/design/motion/the-motion-system.html#fade-through).
 
-<img src="./document/preview-fadethrough.gif" alt="preview" width="480"/>
+<img src="./document/preview-fade-through.gif" alt="preview" width="480"/>
 
 3. [ContainerTransform](https://m2.material.io/design/motion/the-motion-system.html#container-transform)
 
-<img src="./document/preview-containertransform.gif" alt="preview" width="480"/>
+<img src="./document/preview-container-transform.gif" alt="preview" width="480"/>
 
 - Tip: you can continue to toggle animation even animation is running.
 

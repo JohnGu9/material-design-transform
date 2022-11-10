@@ -203,7 +203,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
               top: '50%',
               width: '100%',
               height: '100%',
-              pointerEvents: overlayShow ? undefined : 'none',
+              pointerEvents: 'none',
               opacity: overlayShow ? 1 : 0,
               transform: overlayShow
                 ? distTransform(position)
@@ -219,6 +219,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
                 transitionProperty: 'height, width, border-radius',
                 transitionDuration: '250ms',
                 transitionTimingFunction: Curves.StandardEasing,
+                pointerEvents: overlayShow ? 'auto' : 'none',
                 borderRadius: overlayShow
                   ? distBorderRadius(overlayStyle)
                   : srcBorderRadius(overlay.element),
