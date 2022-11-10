@@ -1,7 +1,7 @@
 import { Context, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 export type Key = string | number | symbol;
-export type AnimationState = true /* enter */ | false /* exit */ | undefined /* before enter */;
+export type AnimationState = true /* enter */ | false /* exit */ | undefined /* before enter */ | null /* enter animation end */;
 export type Overlays<Overlay> = { [key: Key]: Overlay | undefined };
 export type OverlayTransformContext<Overlay> = {
   keyId: Key | undefined,
@@ -20,6 +20,10 @@ export function useOverlayTransformLayout<Overlay extends object>(
   const notifyUpdate = () => { setTicker(value => !value); };
   const onEnter = useCallback(() => {
     state.animationState = true;
+    notifyUpdate();
+  }, [state]);
+  const onEntered = useCallback(() => {
+    state.animationState = null;
     notifyUpdate();
   }, [state]);
   const onExited = useCallback(() => {
@@ -51,6 +55,7 @@ export function useOverlayTransformLayout<Overlay extends object>(
   return {
     ...state,
     onEnter,
+    onEntered,
     onExited,
   };
 }

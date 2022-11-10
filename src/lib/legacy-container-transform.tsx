@@ -9,6 +9,7 @@ export type ContainerTransformLayoutProps = {
   overlayStyle?: CSSProperties,
   overlayTransitionProperty?: string,
   onScrimClick?: React.MouseEventHandler<HTMLDivElement>,
+  willChangeDisable?: boolean,
 };
 
 export const ContainerTransformLayout = buildContainerTransformLayout('div');
@@ -20,18 +21,22 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
       onScrimClick,
       overlayStyle = defaultOverlayStyle,
       overlayTransitionProperty = 'left, right, top, bottom, width, height, box-shadow, border-radius',
+      willChangeDisable,
       children,
       style,
       ...props }, ref) {
       const composeRefs = useRefComposer();
       const innerRef = useRef<HTMLElement>(null);
       const scrimRef = useRef<HTMLDivElement>(null);
+      const containerRef = useRef<HTMLDivElement>(null);
       const overlays = useMemo(() => { return {} as { [key: Key]: Overlay }; }, []);
-      const { overlay, animationState, onEnter, onExited,
+      const { overlay, animationState, onEnter, onEntered, onExited,
         keyId: currentKeyId } = useOverlayTransformLayout(keyId, getOverlay(keyId, overlays));
 
       const hasOverlay = overlay !== undefined;
-      const overlayShow: boolean = animationState === true;
+      const overlayShow: boolean = animationState === true || animationState === null;
+      const animating = willChangeDisable ? false : animationState !== null;
+
 
       useEffect(() => {
         if (hasOverlay) {
@@ -68,7 +73,6 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
               pointerEvents: overlayShow ? undefined : 'none',
               opacity: overlayShow ? 1 : 0,
               transition: overlayShow ? scrimShowTransition : scrimHiddenTransition,
-              willChange: animationState === undefined ? 'pointer-events, opacity, transition' : undefined,
             }}
             onClick={onScrimClick}
             onTransitionEnd={animationState === false
@@ -96,6 +100,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
                   innerRef.current!,
                   overlayStyle,
                   overlayTransitionProperty)),
+              willChange: animating ? overlayTransitionProperty : undefined,
             },
           }, [
             <div key={0}
@@ -105,18 +110,24 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
                 pointerEvents: overlayShow ? 'none' : undefined,
                 opacity: overlayShow ? 0 : 1,
                 transition: overlayShow ? 'opacity 60ms linear 60ms' : 'opacity 133ms linear 117ms',
-                willChange: animationState === undefined ? 'pointer-events, opacity, transition' : undefined,
               }}>
               {overlay.mock ?? overlay.props.children}
             </div>,
             <div key={1}
+              ref={containerRef}
               style={{
                 ...fullSizeStyle,
                 pointerEvents: overlayShow ? undefined : 'none',
                 opacity: overlayShow ? 1 : 0,
                 transition: overlayShow ? 'opacity 120ms linear 125ms' : 'opacity 50ms linear 67ms',
-                willChange: animationState === undefined ? 'pointer-events, opacity, transition' : undefined,
-              }}>
+              }}
+              onTransitionEnd={animationState === true
+                ? event => {
+                  if (event.target === containerRef.current && event.propertyName === 'opacity') {
+                    onEntered();
+                  }
+                }
+                : undefined} >
               {overlay.container}
             </div>
           ])
@@ -168,6 +179,6 @@ function relativeCenterPosition(child: HTMLElement, parent: HTMLElement, overlay
     bottom: 'bottom' in overlayStyle ? p.bottom - c.bottom : undefined,
     width: 'width' in overlayStyle ? c.width : undefined,
     height: 'height' in overlayStyle ? c.height : undefined,
-    willChange: transitionProperty,
+
   };
 }
