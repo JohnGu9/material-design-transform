@@ -94,10 +94,6 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
       const composeRefs = useRefComposer();
       const innerRef = useRef<HTMLElement>(null);
       const scrimRef = useRef<HTMLDivElement>(null);
-      const overlayRef = useRef<HTMLElement>(null);
-      const originRef = useRef<HTMLDivElement>(null);
-      const containerRef = useRef<HTMLDivElement>(null);
-      const containerWrapperRef = useRef<HTMLDivElement>(null);
       const overlays = useMemo(() => { return {} as { [key: Key]: Overlay }; }, []);
       const { overlay, animationState, onEnter, onExited,
         keyId: currentKeyId } = useOverlayTransformLayout(keyId, getOverlay(keyId, overlays, container, containerFit));
@@ -108,11 +104,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
 
       useEffect(() => {
         if (hasOverlay && animationState === undefined) {
-          scrimRef.current?.getBoundingClientRect();
-          overlayRef.current?.getBoundingClientRect();
-          originRef.current?.getBoundingClientRect();
-          containerRef.current?.getBoundingClientRect();
-          containerWrapperRef.current?.getBoundingClientRect();
+          innerRef.current?.getBoundingClientRect();
           onEnter();
         } else if (animationState === false) {
           const { current } = scrimRef;
@@ -160,9 +152,8 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
         /* overlay */
         hasOverlay
           ? createElement(overlay.tag, {
-            ...(overlay.props),
             key: 2,
-            ref: overlayRef,
+            ...(overlay.props),
             style: {
               ...overlay.props.style,
               position: 'absolute',
@@ -174,27 +165,22 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
                 ? overlayStyleToStyle(overlayStyle, position)
                 : relativeCenterPosition(overlay.element, innerRef.current!)),
               willChange: animationState === undefined ? 'left, top, width, height, box-shadow, border-radius' : undefined,
-
             },
-          },
-            <div
-              ref={originRef}
-              style={{
-                ...fullSizeStyle,
-                ...centerStyle,
-                pointerEvents: overlayShow ? 'none' : undefined,
-                opacity: overlayShow ? 0 : 1,
-                transition: overlayShow ? 'opacity 60ms linear 60ms' : 'opacity 133ms linear 117ms',
-                willChange: animationState === undefined ? 'pointer-events, opacity, transition' : undefined,
-              }}>
-              {overlay.mock ?? overlay.props.children}
-            </div>)
+          }, <div
+            style={{
+              ...fullSizeStyle,
+              ...centerStyle,
+              pointerEvents: overlayShow ? 'none' : undefined,
+              opacity: overlayShow ? 0 : 1,
+              transition: overlayShow ? 'opacity 60ms linear 60ms' : 'opacity 133ms linear 117ms',
+              willChange: animationState === undefined ? 'pointer-events, opacity, transition' : undefined,
+            }}>
+            {overlay.mock ?? overlay.props.children}
+          </div>)
           : <Fragment key={2} />,
         /* container */
         hasOverlay
-          ? <div
-            key={3}
-            ref={containerRef}
+          ? <div key={3}
             style={{
               ...centerStyle,
               position: 'absolute',
@@ -211,23 +197,21 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
               transition: overlayShow ? containerShowTransition : containerHiddenTransition,
               willChange: animationState === undefined ? 'pointer-events, opacity, transform, transition' : undefined,
             }}>
-            <div
-              ref={containerWrapperRef}
-              style={{
-                position: 'relative',
-                overflow: 'hidden',
-                transitionProperty: 'height, width, border-radius',
-                transitionDuration: '250ms',
-                transitionTimingFunction: Curves.StandardEasing,
-                pointerEvents: overlayShow ? 'auto' : 'none',
-                borderRadius: overlayShow
-                  ? distBorderRadius(overlayStyle)
-                  : srcBorderRadius(overlay.element),
-                ...(overlayShow
-                  ? { width: `${position.width * 100}%`, height: `${position.height * 100}%` }
-                  : compensateSize(overlay.element, innerRef.current!, position, overlay.containerFit)),
-                willChange: animationState === undefined ? 'height, width, border-radius' : undefined,
-              }}>
+            <div style={{
+              position: 'relative',
+              overflow: 'hidden',
+              transitionProperty: 'height, width, border-radius',
+              transitionDuration: '250ms',
+              transitionTimingFunction: Curves.StandardEasing,
+              pointerEvents: overlayShow ? 'auto' : 'none',
+              borderRadius: overlayShow
+                ? distBorderRadius(overlayStyle)
+                : srcBorderRadius(overlay.element),
+              ...(overlayShow
+                ? { width: `${position.width * 100}%`, height: `${position.height * 100}%` }
+                : compensateSize(overlay.element, innerRef.current!, position, overlay.containerFit)),
+              willChange: animationState === undefined ? 'height, width, border-radius' : undefined,
+            }}>
               {overlay.container}
             </div>
           </div>

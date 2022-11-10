@@ -26,9 +26,6 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
       const composeRefs = useRefComposer();
       const innerRef = useRef<HTMLElement>(null);
       const scrimRef = useRef<HTMLDivElement>(null);
-      const overlayRef = useRef<HTMLElement>(null);
-      const originRef = useRef<HTMLDivElement>(null);
-      const containerRef = useRef<HTMLDivElement>(null);
       const overlays = useMemo(() => { return {} as { [key: Key]: Overlay }; }, []);
       const { overlay, animationState, onEnter, onExited,
         keyId: currentKeyId } = useOverlayTransformLayout(keyId, getOverlay(keyId, overlays));
@@ -38,10 +35,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
 
       useEffect(() => {
         if (hasOverlay) {
-          scrimRef.current?.getBoundingClientRect();
-          overlayRef.current?.getBoundingClientRect();
-          originRef.current?.getBoundingClientRect();
-          containerRef.current?.getBoundingClientRect();
+          innerRef.current?.getBoundingClientRect();
           onEnter();
         } else if (animationState === false) {
           const { current } = scrimRef;
@@ -87,9 +81,8 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
           : <Fragment key={1} />,
         hasOverlay
           ? createElement(overlay.tag, {
-            ...(overlay.props),
             key: 2,
-            ref: overlayRef,
+            ...(overlay.props),
             style: {
               ...overlay.props.style,
               position: 'absolute',
@@ -106,7 +99,6 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
             },
           }, [
             <div key={0}
-              ref={originRef}
               style={{
                 ...fullSizeStyle,
                 ...centerStyle,
@@ -118,7 +110,6 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
               {overlay.mock ?? overlay.props.children}
             </div>,
             <div key={1}
-              ref={containerRef}
               style={{
                 ...fullSizeStyle,
                 pointerEvents: overlayShow ? undefined : 'none',
