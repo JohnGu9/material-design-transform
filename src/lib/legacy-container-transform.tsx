@@ -31,10 +31,10 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
       const containerRef = useRef<HTMLDivElement>(null);
       const overlays = useMemo(() => { return {} as { [key: Key]: Overlay }; }, []);
       const { overlay, animationState, onEnter, onExited,
-        keyId: currentKeyId } = useOverlayTransformLayout(keyId, overlays);
+        keyId: currentKeyId } = useOverlayTransformLayout(keyId, getOverlay(keyId, overlays));
 
       const hasOverlay = overlay !== undefined;
-      const overlayShow = animationState === true;
+      const overlayShow: boolean = animationState === true;
 
       useEffect(() => {
         if (hasOverlay) {
@@ -138,6 +138,11 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
   );
 }
 
+function getOverlay(keyId: Key | undefined, overlays: { [key: Key]: Overlay }) {
+  if (keyId === undefined) return undefined;
+  return overlays[keyId];
+}
+
 const fullSizeStyle: React.CSSProperties = {
   position: 'absolute',
   left: 0,
@@ -174,4 +179,3 @@ function relativeCenterPosition(child: HTMLElement, parent: HTMLElement, overlay
     willChange: transitionProperty,
   };
 }
-

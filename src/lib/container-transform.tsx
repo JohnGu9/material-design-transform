@@ -1,6 +1,6 @@
 import React, { createContext, createElement, Fragment, useEffect, useMemo, useRef } from "react";
 import { useRefComposer } from "react-ref-composer";
-import { createComponent, Curves, TagToElementType } from "./common";
+import { createComponent, Curves, elevationBoxShadow, TagToElementType } from "./common";
 import { Key, useOverlayTransform, useOverlayTransformLayout } from "./overlay-transform";
 
 export enum ContainerFit { width, height, both };
@@ -20,7 +20,7 @@ export function buildContainerTransform<T extends keyof JSX.IntrinsicElements, E
       keyId,
       mock,
       container,
-      containerFit = ContainerFit.width,
+      containerFit,
       style,
       ...props }, ref) {
       const composeRefs = useRefComposer();
@@ -50,17 +50,17 @@ export function buildContainerTransform<T extends keyof JSX.IntrinsicElements, E
 
 export type OverlayPosition = {
   /* number: 0 mean 0%, 1 mean 100% */
-  centerX: number, /* 50% mean center */
-  centerY: number,/* 50% mean center */
-  width: number,/* 100% mean full width */
-  height: number/* 100% mean full height */
+  centerX: number, /* default: 0.5, 0.5 mean center */
+  centerY: number,/* default: 0.5, 0.5 mean center */
+  width: number,/* default: 1, 1 mean full width */
+  height: number/* default: 1, 1 mean full height */
 };
 
 export type Overlay = {
   tag: string, props: React.HTMLProps<HTMLElement>, element: HTMLElement,
   mock?: React.ReactNode,
-  container: React.ReactNode,
-  containerFit: ContainerFit,
+  container?: React.ReactNode,
+  containerFit?: ContainerFit,
 };
 
 export const ContainerTransformLayoutContext = createContext({
@@ -70,9 +70,11 @@ export const ContainerTransformLayoutContext = createContext({
 
 export type ContainerTransformLayoutProps = {
   keyId?: Key,
-  overlayPosition?: OverlayPosition,
+  overlayPosition?: Partial<OverlayPosition>,
   overlayStyle?: Omit<React.CSSProperties, 'left' | 'right' | 'top' | 'bottom' | 'width' | 'height' | 'transform'>,
   onScrimClick?: React.MouseEventHandler<HTMLDivElement>,
+  container?: React.ReactNode,  /* if [ContainerTransform]'s container not set */
+  containerFit?: ContainerFit,  /* if [ContainerTransform]'s containerFit not set */
 };
 
 export const ContainerTransformLayout = buildContainerTransformLayout('div');
@@ -82,8 +84,10 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
     function ({
       keyId,
       onScrimClick,
-      overlayPosition = defaultOverlayPosition,
+      overlayPosition,
       overlayStyle = defaultOverlayStyle,
+      container,
+      containerFit = ContainerFit.width,
       children,
       style,
       ...props }, ref) {
@@ -96,10 +100,11 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
       const containerWrapperRef = useRef<HTMLDivElement>(null);
       const overlays = useMemo(() => { return {} as { [key: Key]: Overlay }; }, []);
       const { overlay, animationState, onEnter, onExited,
-        keyId: currentKeyId } = useOverlayTransformLayout(keyId, overlays);
+        keyId: currentKeyId } = useOverlayTransformLayout(keyId, getOverlay(keyId, overlays, container, containerFit));
 
+      const position = getPosition(overlayPosition);
       const hasOverlay = overlay !== undefined;
-      const overlayShow = animationState === true;
+      const overlayShow: boolean = animationState === true;
 
       useEffect(() => {
         if (hasOverlay && animationState === undefined) {
@@ -168,7 +173,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
               transitionDuration: '250ms',
               transitionTimingFunction: Curves.StandardEasing,
               ...(overlayShow
-                ? overlayStyleToStyle(overlayStyle, overlayPosition)
+                ? overlayStyleToStyle(overlayStyle, position)
                 : relativeCenterPosition(overlay.element, innerRef.current!)),
               willChange: animationState === undefined ? 'left, top, width, height, box-shadow, border-radius' : undefined,
 
@@ -181,9 +186,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
                 ...centerStyle,
                 pointerEvents: overlayShow ? 'none' : undefined,
                 opacity: overlayShow ? 0 : 1,
-                transition: overlayShow
-                  ? 'opacity 60ms linear 60ms'
-                  : 'opacity 133ms linear 117ms',
+                transition: overlayShow ? 'opacity 60ms linear 60ms' : 'opacity 133ms linear 117ms',
                 willChange: animationState === undefined ? 'pointer-events, opacity, transition' : undefined,
               }}>
               {overlay.mock ?? overlay.props.children}
@@ -205,8 +208,8 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
               pointerEvents: overlayShow ? undefined : 'none',
               opacity: overlayShow ? 1 : 0,
               transform: overlayShow
-                ? distTransform(overlayPosition)
-                : srcTransform(overlay.element, innerRef.current!, overlayPosition, overlay.containerFit),
+                ? distTransform(position)
+                : srcTransform(overlay.element, innerRef.current!, position, overlay.containerFit),
               transition: overlayShow ? showTransition : hiddenTransition,
               willChange: animationState === undefined ? 'pointer-events, opacity, transform, transition' : undefined,
             }}>
@@ -222,8 +225,8 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
                   ? distBorderRadius(overlayStyle)
                   : srcBorderRadius(overlay.element),
                 ...(overlayShow
-                  ? { width: `${overlayPosition.width * 100}%`, height: `${overlayPosition.height * 100}%` }
-                  : compensateSize(overlay.element, innerRef.current!, overlayPosition, overlay.containerFit)),
+                  ? { width: `${position.width * 100}%`, height: `${position.height * 100}%` }
+                  : compensateSize(overlay.element, innerRef.current!, position, overlay.containerFit)),
                 willChange: animationState === undefined ? 'height, width, border-radius' : undefined,
               }}>
               {overlay.container}
@@ -235,11 +238,31 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
   );
 }
 
+function getOverlay(keyId: Key | undefined, overlays: { [key: Key]: Overlay }, container: React.ReactNode, containerFit: ContainerFit) {
+  if (keyId === undefined) return undefined;
+  const overlay = overlays[keyId];
+  if (overlay === undefined) return undefined;
+  return {
+    ...overlays[keyId],
+    container: overlay.container ?? container,
+    containerFit: overlay.containerFit ?? containerFit,
+  }
+}
+
 const showTransition = buildTransition('opacity 120ms linear 125ms', ['transform'], '250ms', Curves.StandardEasing);
 const hiddenTransition = buildTransition('opacity 50ms linear 67ms', ['transform'], '250ms', Curves.StandardEasing);
 
 function buildTransition(start: string, property: string[], duration: string, curve: string) {
   return [start, ...property.map(value => `${value} ${duration} ${curve}`)].join(', ');
+}
+
+function getPosition(position: Partial<OverlayPosition> | undefined): OverlayPosition {
+  return {
+    centerX: position?.centerX ?? 0.5,
+    centerY: position?.centerY ?? 0.5,
+    width: position?.width ?? 1,
+    height: position?.height ?? 1,
+  };
 }
 
 const fullSizeStyle: React.CSSProperties = {
@@ -256,15 +279,8 @@ const centerStyle: React.CSSProperties = {
   alignItems: 'center',
 }
 
-const defaultOverlayPosition: OverlayPosition = {
-  centerX: 0.5,
-  centerY: 0.5,
-  width: 1,
-  height: 1,
-}
-
 const defaultOverlayStyle = {
-  boxShadow: '0px 11px 15px -7px rgba(0, 0, 0, 0.2), 0px 24px 38px 3px rgba(0, 0, 0, 0.14), 0px 9px 46px 8px rgba(0, 0, 0, 0.12)',
+  boxShadow: elevationBoxShadow(24),
   borderRadius: 0,
 }
 

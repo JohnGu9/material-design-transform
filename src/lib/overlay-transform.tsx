@@ -8,15 +8,14 @@ export type OverlayTransformContext<Overlay> = {
   overlays: Overlays<Overlay>,
 }
 
-export function useOverlayTransformLayout<Overlay>(
+export function useOverlayTransformLayout<Overlay extends object>(
   keyId: Key | undefined,
-  overlays: Overlays<Overlay>) {
+  overlay: Overlay | undefined) {
   const state = useMemo<{
     keyId: Key | undefined;
     overlay: Overlay | undefined;
     animationState: AnimationState;
   }>(buildState, []);
-  const overlay = keyId !== undefined ? overlays[keyId] : undefined;
   const [, setTicker] = useState(false);
   const notifyUpdate = () => { setTicker(value => !value); };
   const onEnter = useCallback(() => {
@@ -39,7 +38,6 @@ export function useOverlayTransformLayout<Overlay>(
     }
   }
   if (state.animationState !== false && state.keyId !== undefined) {
-    if (overlay === undefined) throw Error(`keyId[${String(state.keyId)}] has not bind to any Component`);
     state.overlay = overlay;
   }
 

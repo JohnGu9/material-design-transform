@@ -59,11 +59,17 @@ const [id, setId] = React.useState(undefined);
 
 <ContainerTransformLayout keyId={id}>
   ...
-  <ContainerTransform keyId={0} container={<ElementShowOnExpanded />}>
+  <ContainerTransform
+    keyId={0 /* when [id] equal 0 */}
+    container={<ElementShowOnExpanded />}
+  >
     <ElementShowOnClosed />
   </ContainerTransform>
   ...
-  <ContainerTransform keyId={1} container={<ElementShowOnExpanded />}>
+  <ContainerTransform
+    keyId={1 /* when [id] equal 1 */}
+    container={<ElementShowOnExpanded />}
+  >
     <ElementShowOnClosed />
   </ContainerTransform>
   ...
@@ -73,12 +79,12 @@ const [id, setId] = React.useState(undefined);
 - If ContainerTransformLayout's keyId `matches` one ContainerTransform's keyId, the ContainerTransform's container will be expanded with animation.
 - ContainerTransform's keyId should be `unique` under same ContainerTransformLayout.
 - ContainerTransform's children should be available to render two same element on single document at the same time. Or use ContainerTransform-`mock` to create a mock element for animation.
-- ContainerTransform's `relative position` / `size` / `children` / `props` should be not change when animation is running.
-- ContainerTransformLayout should not have any [border](https://developer.mozilla.org/en-US/docs/Web/CSS/border) (but [outline](https://developer.mozilla.org/en-US/docs/Web/CSS/outline) is ok).
-- ContainerTransform should not have any [padding](https://developer.mozilla.org/en-US/docs/Web/CSS/padding) or any [border](https://developer.mozilla.org/en-US/docs/Web/CSS/border) (but [outline](https://developer.mozilla.org/en-US/docs/Web/CSS/outline) is ok).
-- ContainerTransform's animation `motion track` is different from origin material design because it only use css transition for animation that animation is limited by css.
-- ContainerTransform's `box-shadow` and `border-radius` can be animated.
-- By default ContainerTransform will animate to match ContainerTransformLayout size and position, but you can edit [overlayStyle](./src/stories/ContainerTransform.stories.tsx) of ContainerTransformLayout to custom animation target.
+- ContainerTransform's `relative position` / `size` / `children` / `props` should not change when animation is running.
+- ContainerTransformLayout itself should not have any [border](https://developer.mozilla.org/en-US/docs/Web/CSS/border) (but [outline](https://developer.mozilla.org/en-US/docs/Web/CSS/outline) is ok).
+- ContainerTransform itself should not have any [padding](https://developer.mozilla.org/en-US/docs/Web/CSS/padding) or any [border](https://developer.mozilla.org/en-US/docs/Web/CSS/border) (but [outline](https://developer.mozilla.org/en-US/docs/Web/CSS/outline) is ok).
+- ContainerTransform's animation `motion track` (only linear track) is different from origin material design because it only use css transition for animation that animation is limited by css.
+- ContainerTransform's `box-shadow` and `border-radius` can be animated during animation.
+- By default ContainerTransform will animate to match ContainerTransformLayout size and position, but you can edit [overlayPosition](./src/stories/ContainerTransform.stories.tsx) of ContainerTransformLayout to custom animation target.
 
 ## keyId
 
@@ -96,12 +102,12 @@ import { ContainerTransformLayout } from "material-design-transform/legacy-conta
 
 The different between new `ContainerTransform` and `LegacyContainerTransform` is that:
 
-- LegacyContainerTransformLayout - the container will change `size` during animation
-- ContainerTransformLayout - the container do not change size during animation (but just transform)
+- LegacyContainerTransformLayout - the container will change its `size` during animation
+- ContainerTransformLayout - the container do not change its size during animation (but just transform)
 
-Size changing may re-layout ContainerTransform-`container`'s content, user by own should keep the layout consistent in different size during animation that is not easy.
+Size changing may cause re-layout of ContainerTransform-`container`'s content, user by own should keep the layout consistent in different size during animation that is not easy.
 
-So new ContainerTransformLayout only use transform. If ContainerTransformLayout's size don't change, the container's size would not change. So that user no longer need to case about layout problem during animation under new ContainerTransformLayout. Take advantage of ContainerTransform-`containerFit` to unlock more animation styles ([check out demo](./src/stories/ContainerTransform.stories.tsx)).
+So new ContainerTransformLayout only use transform. If ContainerTransformLayout's size don't change, the container's size would not change. So that user no longer need to care about layout problem during animation under new ContainerTransformLayout. Take advantage of ContainerTransform-`containerFit` to unlock more animation styles ([check out demo](./src/stories/ContainerTransform.stories.tsx)).
 
 <img src="./document/preview-container-fit.gif" alt="preview" width="480"/>
 
