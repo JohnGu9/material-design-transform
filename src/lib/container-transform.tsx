@@ -145,9 +145,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
               backgroundColor: 'rgba(0, 0, 0, 0.32)',
               pointerEvents: overlayShow ? undefined : 'none',
               opacity: overlayShow ? 1 : 0,
-              transition: overlayShow
-                ? `opacity 90ms ${Curves.Easing(0, 0)}`
-                : `opacity 250ms ${Curves.StandardEasing}`,
+              transition: overlayShow ? scrimShowTransition : scrimHiddenTransition,
               willChange: animationState === undefined ? 'pointer-events, opacity, transition' : undefined,
             }}
             onClick={onScrimClick}
@@ -210,7 +208,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
               transform: overlayShow
                 ? distTransform(position)
                 : srcTransform(overlay.element, innerRef.current!, position, overlay.containerFit),
-              transition: overlayShow ? showTransition : hiddenTransition,
+              transition: overlayShow ? containerShowTransition : containerHiddenTransition,
               willChange: animationState === undefined ? 'pointer-events, opacity, transform, transition' : undefined,
             }}>
             <div
@@ -248,9 +246,11 @@ function getOverlay(keyId: Key | undefined, overlays: { [key: Key]: Overlay }, c
     containerFit: overlay.containerFit ?? containerFit,
   }
 }
+const scrimShowTransition = `opacity 90ms ${Curves.Easing(0, 0)}`;
+const scrimHiddenTransition = `opacity 250ms ${Curves.StandardEasing}`;
 
-const showTransition = buildTransition('opacity 120ms linear 125ms', ['transform'], '250ms', Curves.StandardEasing);
-const hiddenTransition = buildTransition('opacity 50ms linear 67ms', ['transform'], '250ms', Curves.StandardEasing);
+const containerShowTransition = buildTransition('opacity 120ms linear 125ms', ['transform'], '250ms', Curves.StandardEasing);
+const containerHiddenTransition = buildTransition('opacity 50ms linear 67ms', ['transform'], '250ms', Curves.StandardEasing);
 
 function buildTransition(start: string, property: string[], duration: string, curve: string) {
   return [start, ...property.map(value => `${value} ${duration} ${curve}`)].join(', ');

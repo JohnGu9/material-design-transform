@@ -73,9 +73,8 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
               backgroundColor: 'rgba(0, 0, 0, 0.32)',
               pointerEvents: overlayShow ? undefined : 'none',
               opacity: overlayShow ? 1 : 0,
-              transition: overlayShow
-                ? `opacity 90ms ${Curves.Easing(0, 0)}`
-                : `opacity 250ms ${Curves.StandardEasing}`,
+              transition: overlayShow ? scrimShowTransition : scrimHiddenTransition,
+              willChange: animationState === undefined ? 'pointer-events, opacity, transition' : undefined,
             }}
             onClick={onScrimClick}
             onTransitionEnd={animationState === false
@@ -113,9 +112,8 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
                 ...centerStyle,
                 pointerEvents: overlayShow ? 'none' : undefined,
                 opacity: overlayShow ? 0 : 1,
-                transition: overlayShow
-                  ? 'opacity 60ms linear 60ms'
-                  : 'opacity 133ms linear 117ms',
+                transition: overlayShow ? 'opacity 60ms linear 60ms' : 'opacity 133ms linear 117ms',
+                willChange: animationState === undefined ? 'pointer-events, opacity, transition' : undefined,
               }}>
               {overlay.mock ?? overlay.props.children}
             </div>,
@@ -125,9 +123,8 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
                 ...fullSizeStyle,
                 pointerEvents: overlayShow ? undefined : 'none',
                 opacity: overlayShow ? 1 : 0,
-                transition: overlayShow
-                  ? 'opacity 120ms linear 125ms'
-                  : 'opacity 50ms linear 67ms',
+                transition: overlayShow ? 'opacity 120ms linear 125ms' : 'opacity 50ms linear 67ms',
+                willChange: animationState === undefined ? 'pointer-events, opacity, transition' : undefined,
               }}>
               {overlay.container}
             </div>
@@ -137,6 +134,10 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
     }
   );
 }
+
+const scrimShowTransition = `opacity 90ms ${Curves.Easing(0, 0)}`;
+const scrimHiddenTransition = `opacity 250ms ${Curves.StandardEasing}`;
+
 
 function getOverlay(keyId: Key | undefined, overlays: { [key: Key]: Overlay }) {
   if (keyId === undefined) return undefined;

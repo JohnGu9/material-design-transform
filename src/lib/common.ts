@@ -8,8 +8,8 @@ export function createComponent<Element, Props>(render: React.ForwardRefRenderFu
 }
 
 export namespace Curves {
-  export function Easing(outgoing?: number, incoming?: number) {
-    return `cubic-bezier(${outgoing ?? 0.0}, 0.0, ${(1 - (incoming ?? 0.0)).toFixed(2)}, 1)`;
+  export function Easing(outgoing: number, incoming: number) {
+    return `cubic-bezier(${outgoing}, 0.0, ${(1 - incoming).toFixed(2)}, 1)`;
   }
 
   export const StandardEasing = Easing(0.4, 0.8);
