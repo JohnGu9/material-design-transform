@@ -2,7 +2,7 @@ import { action } from '@storybook/addon-actions';
 import { ComponentMeta, ComponentStory } from '@storybook/react';
 import { useState } from 'react';
 import { elevationBoxShadow } from '../lib/common';
-import { ContainerTransform, ContainerTransformLayout, ContainerFit } from '../lib/container-transform';
+import { ContainerTransform, ContainerTransformLayout, ContainerFit, Fit } from '../lib/container-transform';
 import "./ContainerTransform.css";
 
 export default {
@@ -178,3 +178,65 @@ const Template2: ComponentStory<typeof ContainerTransform> = (args) => {
 }
 
 export const containerFit = Template2.bind({});
+
+const Template3: ComponentStory<typeof ContainerTransform> = (args) => {
+  const [id, setId] = useState(0 as number | undefined);
+  return (
+    <div className="main">
+      <div className="buttons-bar">
+        <button onClick={() => setId(undefined)}>close</button>
+        <button onClick={() => setId(0)}>open-0</button>
+        <button onClick={() => setId(1)}>open-1</button>
+        <button onClick={() => setId(2)}>open-2</button>
+        <button onClick={() => setId(3)}>open-3</button>
+      </div>
+      <ContainerTransformLayout
+        keyId={id}
+        className="container-transform-layout"
+        onScrimClick={action('onScrimClick')}
+        container={container}>
+        <ContainerTransform
+          fit={Fit.originSize}
+          style={{ backgroundColor: 'white', outline: '1px solid black' }}
+          {...args}
+          keyId={0}>
+          <div className="container">
+            Fit.originSize
+          </div>
+        </ContainerTransform>
+        <div style={{ height: 32 }} />
+        <ContainerTransform
+          fit={Fit.both}
+          style={{ backgroundColor: 'white', outline: '1px solid black' }}
+          {...args}
+          keyId={1}>
+          <div className="container">
+            Fit.both
+          </div>
+        </ContainerTransform>
+        <div style={{ height: 32 }} />
+        <ContainerTransform
+          fit={Fit.width}
+          style={{ backgroundColor: 'white', outline: '1px solid black' }}
+          {...args}
+          keyId={2}>
+          <div className="container">
+            Fit.width
+          </div>
+        </ContainerTransform>
+        <div style={{ height: 32 }} />
+        <ContainerTransform
+          fit={Fit.height}
+          style={{ backgroundColor: 'white', outline: '1px solid black' }}
+          {...args}
+          keyId={3}>
+          <div className="container">
+            Fit.height
+          </div>
+        </ContainerTransform>
+      </ContainerTransformLayout>
+    </div>
+  );
+}
+
+export const fit = Template3.bind({});

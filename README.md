@@ -90,6 +90,12 @@ const [id, setId] = React.useState(undefined);
 
 Change `keyId` to toggle switch animation. Only keyId change will toggle animation.
 
+## ContainerTransform
+
+- `fit` - how the ContainerTransform's `children` / `mock` fit in ContainerTransform when animating
+
+- `containerFit` - how the ContainerTransform's `container` fit in ContainerTransform when animating
+
 ## LegacyContainerTransform
 
 ```jsx
