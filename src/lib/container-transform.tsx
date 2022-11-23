@@ -1,7 +1,7 @@
-import React, { createContext, createElement, Fragment, useEffect, useMemo, useRef } from "react";
+import React, { createElement, Fragment, useEffect, useMemo, useRef } from "react";
 import { useRefComposer } from "react-ref-composer";
 import { createComponent, Curves, elevationBoxShadow, TagToElementType } from "./common";
-import { Key, useOverlayTransform, useOverlayTransformLayout } from "./overlay-transform";
+import { AnimationState, Key, useOverlayTransform, useOverlayTransformLayout } from "./overlay-transform";
 
 export enum Fit { width, height, both, originSize };
 export enum ContainerFit { width, height, both };
@@ -54,9 +54,9 @@ export function buildContainerTransform<T extends keyof JSX.IntrinsicElements, E
 export type OverlayPosition = {
   /* number: 0 mean 0%, 1 mean 100% */
   centerX: number, /* default: 0.5, 0.5 mean center */
-  centerY: number,/* default: 0.5, 0.5 mean center */
-  width: number,/* default: 1, 1 mean full width */
-  height: number/* default: 1, 1 mean full height */
+  centerY: number, /* default: 0.5, 0.5 mean center */
+  width: number,   /* default: 1, 1 mean full width */
+  height: number,  /* default: 1, 1 mean full height */
 };
 
 export type Overlay = {
@@ -67,7 +67,7 @@ export type Overlay = {
   containerFit?: ContainerFit,
 };
 
-export const ContainerTransformLayoutContext = createContext({
+export const ContainerTransformLayoutContext = React.createContext({
   keyId: undefined as Key | undefined,
   overlays: {} as { [key: Key]: Overlay | undefined },
 });
@@ -101,29 +101,10 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
       ...props }, ref) {
       const composeRefs = useRefComposer();
       const innerRef = useRef<HTMLElement>(null);
-      const scrimRef = useRef<HTMLDivElement>(null);
-      const containerRef = useRef<HTMLDivElement>(null);
       const overlays = useMemo(() => { return {} as { [key: Key]: Overlay }; }, []);
       const { overlay, animationState, onEnter, onEntered, onExited,
         keyId: currentKeyId } = useOverlayTransformLayout(keyId, getOverlay(keyId, overlays, fit, container, containerFit));
-
       const position = getPosition(overlayPosition);
-      const hasOverlay = overlay !== undefined;
-      const overlayShow: boolean = animationState === true || animationState === null;
-      const animating = willChangeDisable ? false : animationState !== null;
-
-      useEffect(() => {
-        if (hasOverlay && animationState === undefined) {
-          innerRef.current?.getBoundingClientRect();
-          onEnter();
-        } else if (animationState === false) {
-          const { current } = scrimRef;
-          if (current) {
-            const style = getComputedStyle(current);
-            if (style.opacity === '0') onExited();
-          }
-        }
-      }, [hasOverlay, animationState, onEnter, onExited]);
 
       return createElement(tag, {
         style: { position: 'relative', ...style },
@@ -138,107 +119,213 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
           }}>
           {children}
         </ContainerTransformLayoutContext.Provider>,
-        /* scrim */
-        hasOverlay
-          ? <div key={1}
-            ref={scrimRef}
-            style={{
-              ...fullSizeStyle,
-              backgroundColor: 'rgba(0, 0, 0, 0.32)',
-              pointerEvents: overlayShow ? undefined : 'none',
-              opacity: overlayShow ? 1 : 0,
-              transition: overlayShow ? scrimShowTransition : scrimHiddenTransition,
-            }}
-            onClick={onScrimClick}
-            onTransitionEnd={animationState === false
-              ? event => {
-                if (event.target === scrimRef.current && event.propertyName === 'opacity') {
-                  onExited();
-                }
-              }
-              : undefined} />
-          : <Fragment key={1} />,
-        /* overlay */
-        hasOverlay
-          ? createElement(overlay.tag, {
-            key: 2,
-            ...(overlay.props),
-            style: {
-              ...overlay.props.style,
-              ...centerStyle,
-              position: 'absolute',
-              transform: 'translate(-50%, -50%)',
-              transitionProperty: 'left, top, width, height, box-shadow, border-radius',
-              transitionDuration: '250ms',
-              transitionTimingFunction: Curves.StandardEasing,
-              ...(overlayShow
-                ? overlayStyleToStyle(overlayStyle, position)
-                : relativeCenterPosition(overlay.element, innerRef.current!)),
-              willChange: animating ? 'left, top, width, height, box-shadow, border-radius' : undefined,
-            },
-          }, <div
-            style={{
-              pointerEvents: overlayShow ? 'none' : undefined,
-              opacity: overlayShow ? 0 : 1,
-              transform: overlayShow
-                ? mockTransform(overlay.element, innerRef.current!, overlay.fit)
-                : 'scale(1, 1)',
-              transition: overlayShow
-                ? overlayShowTransition
-                : overlayHiddenTransition,
-              willChange: animating ? 'opacity, transform' : undefined,
-            }}>
-            {overlay.mock ?? overlay.props.children}
-          </div>)
+        overlay !== undefined
+          ? <Hero key={1}
+            overlay={overlay}
+            animationState={animationState}
+            innerRef={innerRef}
+            position={position}
+            overlayStyle={overlayStyle}
+            willChangeDisable={willChangeDisable}
+            onScrimClick={onScrimClick}
+            onEnter={onEnter}
+            onEntered={onEntered}
+            onExited={onExited} />
           : <Fragment key={2} />,
-        /* container */
-        hasOverlay
-          ? <div key={3}
-            ref={containerRef}
-            style={{
-              ...centerStyle,
-              position: 'absolute',
-              transformOrigin: 'center',
-              left: '50%',
-              top: '50%',
-              width: '100%',
-              height: '100%',
-              pointerEvents: 'none',
-              opacity: overlayShow ? 1 : 0,
-              transform: overlayShow
-                ? distTransform(position)
-                : srcTransform(overlay.element, innerRef.current!, position, overlay.containerFit),
-              transition: overlayShow ? containerShowTransition : containerHiddenTransition,
-              willChange: animating ? 'opacity, transform' : undefined,
-            }}
-            onTransitionEnd={animationState === true
-              ? event => {
-                if (event.target === containerRef.current && event.propertyName === 'opacity') {
-                  onEntered();
-                }
-              }
-              : undefined} >
-            <div style={{
-              position: 'relative',
-              overflow: 'hidden',
-              transitionProperty: containerWrapperWillChange(overlay.containerFit),
-              transitionDuration: '250ms',
-              transitionTimingFunction: Curves.StandardEasing,
-              pointerEvents: overlayShow ? 'auto' : undefined,
-              borderRadius: overlayShow
-                ? distBorderRadius(overlayStyle)
-                : srcBorderRadius(overlay.element),
-              ...(overlayShow
-                ? { width: `${position.width * 100}%`, height: `${position.height * 100}%` }
-                : compensateSize(overlay.element, innerRef.current!, position, overlay.containerFit)),
-              willChange: animating ? containerWrapperWillChange(overlay.containerFit) : undefined,
-            }}>
-              {overlay.container}
-            </div>
-          </div>
-          : <Fragment key={3} />,
       ]);
     }
+  );
+}
+
+function Hero({
+  overlay, animationState, innerRef, position, overlayStyle, willChangeDisable,
+  onScrimClick, onEnter, onEntered, onExited }: {
+    overlay: {
+      fit: Fit;
+      container: React.ReactNode;
+      containerFit: ContainerFit;
+      tag: string;
+      props: React.HTMLProps<HTMLElement>;
+      element: HTMLElement;
+      mock?: React.ReactNode;
+    },
+    animationState: AnimationState,
+    innerRef: React.RefObject<HTMLElement>,
+    position: OverlayPosition,
+    overlayStyle: Omit<React.CSSProperties, 'left' | 'right' | 'top' | 'bottom' | 'width' | 'height' | 'transform'>,
+    willChangeDisable: boolean | undefined,
+
+    onScrimClick: React.MouseEventHandler<HTMLDivElement> | undefined,
+    onEnter: () => void,
+    onEntered: () => void,
+    onExited: () => void,
+  }) {
+  const overlayShow: boolean = animationState === true || animationState === null;
+  const isAnimating = animationState !== null;
+  const willChange = willChangeDisable ? false : isAnimating;
+  const child = overlay.element;
+  const parent = innerRef.current!;
+
+  const scrimRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const containerInnerRef = useRef<HTMLDivElement>(null);
+  const rects = useMemo(() => {
+    const childRect = child.getBoundingClientRect();
+    const parentRect = parent.getBoundingClientRect();
+    return {
+      childRect, parentRect,
+      currentRect: childRect,
+      position, overlay
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [child, parent]);
+  rects.position = position;
+  rects.overlay = overlay;
+
+  if (animationState === false) {
+    rects.childRect = child.getBoundingClientRect();
+  }
+  const { childRect, parentRect, currentRect } = rects;
+
+  useEffect(() => {
+    switch (animationState) {
+      case undefined: {
+        rects.parentRect = parent.getBoundingClientRect();
+        rects.childRect = child.getBoundingClientRect();
+        onEnter();
+        break;
+      }
+      case false: {
+        const { current } = scrimRef;
+        if (current) {
+          const style = getComputedStyle(current);
+          if (style.opacity === '0') onExited();
+        }
+        break;
+      }
+    }
+  }, [animationState, parent, child, rects, onEnter, onExited]);
+
+  useEffect(() => {
+    const current = containerInnerRef.current!;
+    const update = () => {
+      const { overlay, currentRect, parentRect, position } = rects;
+      switch (overlay.containerFit) {
+        case ContainerFit.both:
+          return;
+      }
+      const { width, height } = compensateSize(currentRect, parentRect, position, overlay.containerFit);
+      current.style.width = width;
+      current.style.height = height;
+    };
+    const observer = new ResizeObserver((entries) => {
+      rects.parentRect = parent.getBoundingClientRect();
+      update();
+    });
+    const overlayObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        rects.currentRect = entry.contentRect;
+      }
+      update();
+    });
+    observer.observe(innerRef.current!);
+    overlayObserver.observe(overlayRef.current!);
+    return () => {
+      observer.disconnect();
+      overlayObserver.disconnect();
+    }
+  }, [innerRef, rects, parent]);
+
+  return (
+    <>
+      <div ref={scrimRef}
+        style={{
+          ...fullSizeStyle,
+          backgroundColor: 'rgba(0, 0, 0, 0.32)',
+          pointerEvents: overlayShow ? undefined : 'none',
+          opacity: overlayShow ? 1 : 0,
+          transition: overlayShow ? scrimShowTransition : scrimHiddenTransition,
+        }}
+        onClick={onScrimClick}
+        onTransitionEnd={animationState === false
+          ? event => {
+            if (event.target === scrimRef.current && event.propertyName === 'opacity') {
+              onExited();
+            }
+          }
+          : undefined} />
+      {/* overlay */}
+      {createElement(overlay.tag, {
+        ...(overlay.props),
+        ref: overlayRef,
+        style: {
+          ...overlay.props.style,
+          ...centerStyle,
+          position: 'absolute',
+          transform: 'translate(-50%, -50%)',
+          transitionProperty: 'left, top, width, height, box-shadow, border-radius',
+          transitionDuration: '250ms',
+          transitionTimingFunction: Curves.StandardEasing,
+          ...(overlayShow
+            ? overlayStyleToStyle(overlayStyle, position)
+            : relativeCenterPosition(childRect, parentRect)),
+          willChange: willChange ? 'left, top, width, height, box-shadow, border-radius' : undefined,
+        },
+      }, <div
+        style={{
+          pointerEvents: overlayShow ? 'none' : undefined,
+          opacity: overlayShow ? 0 : 1,
+          transform: overlayShow
+            ? mockTransform(childRect, parentRect, overlay.fit)
+            : 'scale(1, 1)',
+          transition: overlayShow ? overlayShowTransition : overlayHiddenTransition,
+          willChange: willChange ? 'opacity, transform' : undefined,
+        }}>
+        {overlay.mock ?? overlay.props.children}
+      </div>)}
+      {/* container */}
+      <div ref={containerRef}
+        style={{
+          ...centerStyle,
+          position: 'absolute',
+          transformOrigin: 'center',
+          left: '50%',
+          top: '50%',
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          opacity: overlayShow ? 1 : 0,
+          transform: overlayShow
+            ? distTransform(position)
+            : srcTransform(childRect, parentRect, position, overlay.containerFit),
+          transition: overlayShow ? containerShowTransition : containerHiddenTransition,
+          willChange: willChange ? 'opacity, transform' : undefined,
+        }}
+        onTransitionEnd={animationState === true
+          ? event => {
+            if (event.target === containerRef.current && event.propertyName === 'opacity') {
+              onEntered();
+            }
+          }
+          : undefined} >
+        <div ref={containerInnerRef}
+          style={{
+            // outline: '1px solid red',
+            position: 'relative',
+            overflow: 'hidden',
+            transitionProperty: 'border-radius',
+            transitionDuration: '250ms',
+            transitionTimingFunction: Curves.StandardEasing,
+            pointerEvents: overlayShow ? 'auto' : undefined,
+            borderRadius: overlayShow ? distBorderRadius(overlayStyle) : srcBorderRadius(child),
+            ...(compensateSize(currentRect, parentRect, position, overlay.containerFit)),
+            willChange: willChange ? containerWrapperWillChange(overlay.containerFit) : undefined,
+          }}>
+          {overlay.container}
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -304,9 +391,7 @@ function overlayStyleToStyle(css: React.CSSProperties, position: OverlayPosition
   };
 }
 
-function relativeCenterPosition(child: HTMLElement, parent: HTMLElement): React.CSSProperties {
-  const c = child.getBoundingClientRect();
-  const p = parent.getBoundingClientRect();
+function relativeCenterPosition(c: DOMRect, p: DOMRect): React.CSSProperties {
   return {
     left: `${(c.left - p.left + c.width / 2) / p.width * 100}%`,
     top: `${(c.top - p.top + c.height / 2) / p.height * 100}%`,
@@ -319,9 +404,7 @@ function distTransform(position: OverlayPosition) {
   return `translate(${(position.centerX - 1) * 100}%, ${(position.centerY - 1) * 100}%) scale(1, 1)`;
 }
 
-function srcTransform(child: HTMLElement, parent: HTMLElement, position: OverlayPosition, containerFit: ContainerFit) {
-  const c = child.getBoundingClientRect();
-  const p = parent.getBoundingClientRect();
+function srcTransform(c: DOMRect, p: DOMRect, position: OverlayPosition, containerFit: ContainerFit) {
   switch (containerFit) {
     case ContainerFit.both:
       return `translate(${((c.left - p.left + c.width / 2) / p.width - 1) * 100}%, ${((c.top - p.top + c.height / 2) / p.height - 1) * 100}%) scale(${(c.width / p.width) / position.width}, ${(c.height / p.height) / position.height})`;
@@ -336,7 +419,7 @@ function srcTransform(child: HTMLElement, parent: HTMLElement, position: Overlay
   }
 }
 
-function compensateSize(child: HTMLElement, parent: HTMLElement, position: OverlayPosition, containerFit: ContainerFit): React.CSSProperties {
+function compensateSize(c: DOMRect, p: DOMRect, position: OverlayPosition, containerFit: ContainerFit) {
   switch (containerFit) {
     case ContainerFit.both:
       return {
@@ -344,8 +427,6 @@ function compensateSize(child: HTMLElement, parent: HTMLElement, position: Overl
         height: `${position.height * 100}%`,
       };
     case ContainerFit.height: {
-      const c = child.getBoundingClientRect();
-      const p = parent.getBoundingClientRect();
       const srcRatio = c.width / c.height;
       const distRatio = (p.width * position.width) / (p.height * position.height);
       return {
@@ -354,8 +435,6 @@ function compensateSize(child: HTMLElement, parent: HTMLElement, position: Overl
       };
     }
     case ContainerFit.width: {
-      const c = child.getBoundingClientRect();
-      const p = parent.getBoundingClientRect();
       const srcRatio = c.width / c.height;
       const distRatio = (p.width * position.width) / (p.height * position.height);
       return {
@@ -386,24 +465,18 @@ function distBorderRadius(css: React.CSSProperties) {
   return css?.borderRadius;
 }
 
-function mockTransform(child: HTMLElement, parent: HTMLElement, fit: Fit) {
+function mockTransform(c: DOMRect, p: DOMRect, fit: Fit) {
   switch (fit) {
     case Fit.originSize:
       return 'scale(1, 1)';
     case Fit.both: {
-      const c = child.getBoundingClientRect();
-      const p = parent.getBoundingClientRect();
       return `scale(${p.width / c.width}, ${p.height / c.height})`;
     }
     case Fit.height: {
-      const c = child.getBoundingClientRect();
-      const p = parent.getBoundingClientRect();
       const scale = p.height / c.height;
       return `scale(${scale}, ${scale})`;
     }
     case Fit.width: {
-      const c = child.getBoundingClientRect();
-      const p = parent.getBoundingClientRect();
       const scale = p.width / c.width;
       return `scale(${scale}, ${scale})`;
     }
