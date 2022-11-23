@@ -130,6 +130,18 @@ npm i
 npm run storybook
 ```
 
+## Browser requirement
+
+[ResizeObserver](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver) support
+
+| Browser       | Version (or newer) |
+| ------------- | ------------------ |
+| Chrome        | 64                 |
+| Edge          | 79                 |
+| Firefox       | 69                 |
+| Safari        | 13.1               |
+| Safari on iOS | 13.4               |
+
 ## Component dependencies
 
 - react-dom

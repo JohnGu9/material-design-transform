@@ -192,7 +192,6 @@ function Hero({
     switch (animationState) {
       case undefined: {
         rects.parentRect = parent.getBoundingClientRect();
-        rects.childRect = child.getBoundingClientRect();
         onEnter();
         break;
       }
@@ -205,28 +204,31 @@ function Hero({
         break;
       }
     }
-  }, [animationState, parent, child, rects, onEnter, onExited]);
+  }, [animationState, parent, rects, onEnter, onExited]);
 
   useEffect(() => {
     const current = containerInnerRef.current!;
     const update = () => {
-      const { overlay, currentRect, parentRect, position } = rects;
-      switch (overlay.containerFit) {
-        case ContainerFit.both:
-          return;
+      const { overlay: { containerFit }, currentRect, parentRect, position } = rects;
+      switch (containerFit) {
+        case ContainerFit.both: {
+          break;
+        }
+        default: {
+          const { width, height } = compensateSize(currentRect, parentRect, position, containerFit);
+          current.style.width = width;
+          current.style.height = height;
+        }
       }
-      const { width, height } = compensateSize(currentRect, parentRect, position, overlay.containerFit);
-      current.style.width = width;
-      current.style.height = height;
     };
-    const observer = new ResizeObserver((entries) => {
+    const observer = new ResizeObserver((_) => {
+      // entries do not contain position information (DomRect without x/y)
+      // so call [getBoundingClientRect] to get DomRect without position information 
       rects.parentRect = parent.getBoundingClientRect();
       update();
     });
-    const overlayObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        rects.currentRect = entry.contentRect;
-      }
+    const overlayObserver = new ResizeObserver(([entry]) => {
+      rects.currentRect = entry.contentRect; // currentRect not require position information
       update();
     });
     observer.observe(innerRef.current!);
@@ -239,13 +241,14 @@ function Hero({
 
   return (
     <>
+      {/* scrim */}
       <div ref={scrimRef}
         style={{
           ...fullSizeStyle,
           backgroundColor: 'rgba(0, 0, 0, 0.32)',
           pointerEvents: overlayShow ? undefined : 'none',
           opacity: overlayShow ? 1 : 0,
-          transition: overlayShow ? scrimShowTransition : scrimHiddenTransition,
+          transition: isAnimating ? (overlayShow ? scrimShowTransition : scrimHiddenTransition) : undefined,
         }}
         onClick={onScrimClick}
         onTransitionEnd={animationState === false
@@ -264,22 +267,18 @@ function Hero({
           ...centerStyle,
           position: 'absolute',
           transform: 'translate(-50%, -50%)',
-          transitionProperty: 'left, top, width, height, box-shadow, border-radius',
-          transitionDuration: '250ms',
-          transitionTimingFunction: Curves.StandardEasing,
-          ...(overlayShow
-            ? overlayStyleToStyle(overlayStyle, position)
-            : relativeCenterPosition(childRect, parentRect)),
+          transitionProperty: isAnimating ? 'left, top, width, height, box-shadow, border-radius' : undefined,
+          transitionDuration: isAnimating ? '250ms' : undefined,
+          transitionTimingFunction: isAnimating ? Curves.StandardEasing : undefined,
+          ...(overlayShow ? overlayStyleToStyle(overlayStyle, position) : relativeCenterPosition(childRect, parentRect)),
           willChange: willChange ? 'left, top, width, height, box-shadow, border-radius' : undefined,
         },
       }, <div
         style={{
           pointerEvents: overlayShow ? 'none' : undefined,
           opacity: overlayShow ? 0 : 1,
-          transform: overlayShow
-            ? mockTransform(childRect, parentRect, overlay.fit)
-            : 'scale(1, 1)',
-          transition: overlayShow ? overlayShowTransition : overlayHiddenTransition,
+          transform: overlayShow ? mockTransform(childRect, parentRect, overlay.fit) : 'scale(1, 1)',
+          transition: isAnimating ? (overlayShow ? overlayShowTransition : overlayHiddenTransition) : undefined,
           willChange: willChange ? 'opacity, transform' : undefined,
         }}>
         {overlay.mock ?? overlay.props.children}
@@ -296,10 +295,8 @@ function Hero({
           height: '100%',
           pointerEvents: 'none',
           opacity: overlayShow ? 1 : 0,
-          transform: overlayShow
-            ? distTransform(position)
-            : srcTransform(childRect, parentRect, position, overlay.containerFit),
-          transition: overlayShow ? containerShowTransition : containerHiddenTransition,
+          transform: overlayShow ? distTransform(position) : srcTransform(childRect, parentRect, position, overlay.containerFit),
+          transition: isAnimating ? (overlayShow ? containerShowTransition : containerHiddenTransition) : undefined,
           willChange: willChange ? 'opacity, transform' : undefined,
         }}
         onTransitionEnd={animationState === true
@@ -311,12 +308,10 @@ function Hero({
           : undefined} >
         <div ref={containerInnerRef}
           style={{
-            // outline: '1px solid red',
+            // outline: '1px solid red', 
             position: 'relative',
             overflow: 'hidden',
-            transitionProperty: 'border-radius',
-            transitionDuration: '250ms',
-            transitionTimingFunction: Curves.StandardEasing,
+            transition: isAnimating ? `border-radius 250ms ${Curves.StandardEasing}` : undefined,
             pointerEvents: overlayShow ? 'auto' : undefined,
             borderRadius: overlayShow ? distBorderRadius(overlayStyle) : srcBorderRadius(child),
             ...(compensateSize(currentRect, parentRect, position, overlay.containerFit)),
