@@ -160,7 +160,7 @@ function Hero({
     onEntered: () => void,
     onExited: () => void,
   }) {
-  const overlayShow: boolean = animationState === true || animationState === null;
+  const overlayShow = animationState === true || animationState === null;
   const isAnimating = animationState !== null;
   const willChange = willChangeDisable ? false : isAnimating;
   const child = overlay.element;
@@ -214,15 +214,20 @@ function Hero({
         case ContainerFit.both: {
           break;
         }
-        default: {
-          const { width, height } = compensateSize(currentRect, parentRect, position, containerFit);
+        case ContainerFit.height: {
+          const { width } = compensateSize(currentRect, parentRect, position, containerFit);
           current.style.width = width;
+          break;
+        }
+        case ContainerFit.width: {
+          const { height } = compensateSize(currentRect, parentRect, position, containerFit);
           current.style.height = height;
+          break;
         }
       }
     };
     const observer = new ResizeObserver((_) => {
-      // entries do not contain position information (DomRect without x/y)
+      // entries do not contain position information (DomRect without x / y)
       // so call [getBoundingClientRect] to get DomRect without position information 
       rects.parentRect = parent.getBoundingClientRect();
       update();
@@ -231,13 +236,13 @@ function Hero({
       rects.currentRect = entry.contentRect; // currentRect not require position information
       update();
     });
-    observer.observe(innerRef.current!);
+    observer.observe(parent);
     overlayObserver.observe(overlayRef.current!);
     return () => {
       observer.disconnect();
       overlayObserver.disconnect();
     }
-  }, [innerRef, rects, parent]);
+  }, [rects, parent]);
 
   return (
     <>
@@ -248,7 +253,7 @@ function Hero({
           backgroundColor: 'rgba(0, 0, 0, 0.32)',
           pointerEvents: overlayShow ? undefined : 'none',
           opacity: overlayShow ? 1 : 0,
-          transition: isAnimating ? (overlayShow ? scrimShowTransition : scrimHiddenTransition) : undefined,
+          transition: selectTransition(animationState, scrimShowTransition, scrimHiddenTransition),
         }}
         onClick={onScrimClick}
         onTransitionEnd={animationState === false
@@ -278,7 +283,7 @@ function Hero({
           pointerEvents: overlayShow ? 'none' : undefined,
           opacity: overlayShow ? 0 : 1,
           transform: overlayShow ? mockTransform(childRect, parentRect, overlay.fit) : 'scale(1, 1)',
-          transition: isAnimating ? (overlayShow ? overlayShowTransition : overlayHiddenTransition) : undefined,
+          transition: selectTransition(animationState, overlayShowTransition, overlayHiddenTransition),
           willChange: willChange ? 'opacity, transform' : undefined,
         }}>
         {overlay.mock ?? overlay.props.children}
@@ -296,7 +301,7 @@ function Hero({
           pointerEvents: 'none',
           opacity: overlayShow ? 1 : 0,
           transform: overlayShow ? distTransform(position) : srcTransform(childRect, parentRect, position, overlay.containerFit),
-          transition: isAnimating ? (overlayShow ? containerShowTransition : containerHiddenTransition) : undefined,
+          transition: selectTransition(animationState, containerShowTransition, containerHiddenTransition),
           willChange: willChange ? 'opacity, transform' : undefined,
         }}
         onTransitionEnd={animationState === true
@@ -322,6 +327,15 @@ function Hero({
       </div>
     </>
   );
+}
+
+function selectTransition(animationState: AnimationState, openTransition: string, closeTransition: string) {
+  switch (animationState) {
+    case undefined:
+    case true: return openTransition;
+    case null: return undefined;
+    case false: return closeTransition;
+  }
 }
 
 function getOverlay(keyId: Key | undefined, overlays: { [key: Key]: Overlay }, fit: Fit, container: React.ReactNode, containerFit: ContainerFit) {

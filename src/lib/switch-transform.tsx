@@ -3,22 +3,24 @@ import { createElement, useEffect, useMemo, useRef, useState } from 'react';
 import { useRefComposer } from "react-ref-composer";
 import { createComponent, TagToElementType } from './common';
 
-// @TODO: cancel animation feature
+enum AnimationState { firstFrame, enter, entered, exit };
 
+// If there is no transition delay or duration, if both are 0s or neither is declared, there is no transition, and none of the transition events are fired. 
+// https://developer.mozilla.org/en-US/docs/Web/API/Element/transitionend_event
 type AnimationTransition = {
   duration: number, // unit: ms, should never be 0
   curve: DataType.EasingFunction,
   delay: number, // unit: ms
 };
 
-type AnimationState = {
+type AnimationTransitions = {
   opacity: AnimationTransition,
   transform: AnimationTransition & { value: Property.Transform },
 }
 
 export type Transform = {
-  enter: AnimationState,
-  exit: AnimationState,
+  enter: AnimationTransitions,
+  exit: AnimationTransitions,
 };
 
 export type SwitchTransformProps = {
@@ -40,57 +42,70 @@ export function buildSwitchTransform<T extends keyof JSX.IntrinsicElements, Elem
       const composeRefs = useRefComposer();
       const innerRef = useRef<HTMLElement>(null);
       const state = useMemo(() => {
-        return { keyId, children, enterPrepareStyle, exitStyle, enterLock: false };
+        return { keyId, children, animationState: AnimationState.entered };
         // eslint-disable-next-line react-hooks/exhaustive-deps
       }, []);
       const [, setTicker] = useState(false);
       const updateNotify = () => setTicker(value => !value);
 
       if (state.keyId !== keyId) {
-        state.exitStyle ??= exitAnimation(transform);
-      } else if (switchCancelable) {// state.keyId === keyId
-        if (state.exitStyle) {
-          state.exitStyle = undefined;
-          state.enterLock = true;
+        switch (state.animationState) {
+          case AnimationState.firstFrame: {
+            state.keyId = keyId;
+            break;
+          }
+          default: {
+            const style = getComputedStyle(innerRef.current!);
+            if (style.opacity === '0') {
+              state.animationState = AnimationState.firstFrame;
+              state.keyId = keyId;
+            } else {
+              state.animationState = AnimationState.exit;
+            }
+          }
+        }
+      } else if (switchCancelable) {// && state.keyId === keyId
+        if (state.animationState === AnimationState.exit) {
+          const style = getComputedStyle(innerRef.current!);
+          if (style.opacity === '1') {
+            state.animationState = AnimationState.entered;
+          } else {
+            state.animationState = AnimationState.enter;
+          }
         }
       }
-      if (!state.exitStyle) {
+      if (state.animationState !== AnimationState.exit) {
         state.children = children;
       }
-      const extendsStyle = state.enterLock
-        ? (state.enterPrepareStyle ?? enterAnimation(transform))
-        : state.exitStyle;
       const onTransitionEnd: React.TransitionEventHandler<Element> = (event) => {
         const { current } = innerRef;
-        if (event.target === current &&
-          event.propertyName === 'opacity') {
+        if (event.target === current && event.propertyName === 'opacity') {
           const { style: { opacity } } = current;
           if (opacity === '1') {
             // enter end
-            state.enterLock = false;
+            state.animationState = AnimationState.entered;
             updateNotify();
           } else if (opacity === '0') {
             // exit end
             state.keyId = keyId;
-            state.exitStyle = undefined;
-            state.enterPrepareStyle = enterPrepare(transform);
-            state.enterLock = true;
+            state.animationState = AnimationState.firstFrame;
             updateNotify();
           }
         }
         ote?.(event);
       };
 
+      const isFirstFrame = state.animationState === AnimationState.firstFrame;
       useEffect(() => {
-        if (state.enterPrepareStyle) {
+        if (state.animationState === AnimationState.firstFrame) {
           innerRef.current!.getBoundingClientRect(); // force layout
-          state.enterPrepareStyle = undefined;
+          state.animationState = AnimationState.enter;
           updateNotify();
         }
-      }, [state.enterPrepareStyle, state]);
+      }, [isFirstFrame, state.keyId, state]);
 
       return createElement(tag, {
-        style: { ...extendsStyle, ...style },
+        style: { ...currentStyle(state.animationState, transform), ...style },
         ref: composeRefs(innerRef, ref),
         onTransitionEnd,
         ...props,
@@ -98,14 +113,22 @@ export function buildSwitchTransform<T extends keyof JSX.IntrinsicElements, Elem
     });
 }
 
-const enterPrepareStyle = undefined as React.CSSProperties | undefined;
-const exitStyle = undefined as React.CSSProperties | undefined;
+function currentStyle(animationState: AnimationState, transform: Transform) {
+  switch (animationState) {
+    case AnimationState.firstFrame:
+      return enterPrepare(transform);
+    case AnimationState.enter:
+      return enterAnimation(transform);
+    case AnimationState.exit:
+      return exitAnimation(transform);
+  }
+}
 
 function enterPrepare({ enter: { transform } }: Transform): React.CSSProperties {
   return {
-    willChange: 'transform, opacity, transition',
-    transform: transform.value,
     opacity: 0,
+    transform: transform.value,
+    willChange: 'transform, opacity, transition',
   };
 }
 
@@ -113,15 +136,16 @@ function enterAnimation({ enter: { transform, opacity } }: Transform): React.CSS
   return {
     opacity: 1,
     transition: `transform ${transform.duration}ms ${transform.curve} ${transform.delay}ms, opacity ${opacity.duration}ms ${opacity.curve} ${opacity.delay}ms`,
+    willChange: 'transform, opacity, transition',
   };
 }
 
 function exitAnimation({ exit: { transform, opacity } }: Transform): React.CSSProperties {
   return {
-    willChange: 'transform, transition, pointerEvents',
     pointerEvents: 'none',
-    transform: transform.value,
     opacity: 0,
+    transform: transform.value,
     transition: `transform ${transform.duration}ms ${transform.curve} ${transform.delay}ms, opacity ${opacity.duration}ms ${opacity.curve} ${opacity.delay}ms`,
+    willChange: 'transform, opacity, transition, pointer-events',
   };
 }
