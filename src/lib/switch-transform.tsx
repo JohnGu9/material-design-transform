@@ -1,5 +1,5 @@
 import { DataType, Property } from 'csstype';
-import { createElement, useEffect, useMemo, useRef, useState } from 'react';
+import React, { createElement, useEffect, useMemo, useRef, useState } from 'react';
 import { useRefComposer } from "react-ref-composer";
 import { createComponent, TagToElementType } from './common';
 
@@ -24,8 +24,9 @@ export type Transform = {
 };
 
 export type SwitchTransformProps = {
-  keyId?: unknown,
+  keyId?: React.Key | null | undefined,
   switchCancelable?: boolean, // switch can be cancel before exit animation complete
+  forceRebuildAfterSwitched?: boolean,
   transform: Transform,
 };
 
@@ -34,6 +35,7 @@ export function buildSwitchTransform<T extends keyof JSX.IntrinsicElements, Elem
     function ({
       keyId,
       switchCancelable = true,
+      forceRebuildAfterSwitched = true,
       transform,
       style,
       children,
@@ -109,7 +111,9 @@ export function buildSwitchTransform<T extends keyof JSX.IntrinsicElements, Elem
         ref: composeRefs(innerRef, ref),
         onTransitionEnd,
         ...props,
-      }, state.children);
+      }, <React.Fragment key={forceRebuildAfterSwitched ? state.keyId : undefined}>
+        {state.children}
+      </React.Fragment>);
     });
 }
 
@@ -136,7 +140,7 @@ function enterAnimation({ enter: { transform, opacity } }: Transform): React.CSS
   return {
     opacity: 1,
     transition: `transform ${transform.duration}ms ${transform.curve} ${transform.delay}ms, opacity ${opacity.duration}ms ${opacity.curve} ${opacity.delay}ms`,
-    willChange: 'transform, opacity, transition',
+    willChange: 'transform, opacity',
   };
 }
 

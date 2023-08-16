@@ -18,6 +18,7 @@ export enum SharedAxisTransform {
 export type SharedAxisProps = {
   keyId?: React.Key | null | undefined,
   switchCancelable?: boolean, // switch can be cancel before exit animation complete
+  forceRebuildAfterSwitched?: boolean,
   transform?: SharedAxisTransform,
 };
 
