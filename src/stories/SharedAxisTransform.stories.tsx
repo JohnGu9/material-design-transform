@@ -1,13 +1,13 @@
-import { ComponentMeta, ComponentStory } from '@storybook/react';
+import { Meta, StoryFn } from '@storybook/react';
 import { useState } from 'react';
 import { SharedAxis, SharedAxisTransform } from '../lib';
 import "../App.css";
 
 export default {
   component: SharedAxis,
-} as ComponentMeta<typeof SharedAxis>;
+} as Meta<typeof SharedAxis>;
 
-function buildSharedAxis(...transforms: SharedAxisTransform[]): ComponentStory<typeof SharedAxis> {
+function buildSharedAxis(...transforms: SharedAxisTransform[]): StoryFn<typeof SharedAxis> {
   return (args) => {
     const [id, setId] = useState(0);
     return (

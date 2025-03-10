@@ -1,0 +1,81 @@
+{
+  "name": "material-design-transform",
+  "version": "2.1.5",
+  "private": false,
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JohnGu9/MaterialDesignTransform.git"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "license": "MIT",
+  "author": "johngu",
+  "keywords": [
+    "react",
+    "dom",
+    "animation",
+    "ui"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "serve": "vite preview",
+    "clean": "node ./script/clean.js",
+    "build": "npm run clean && tsc -p tsconfig.build.json",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@chromatic-com/storybook": "^3.2.5",
+    "@eslint/js": "^9.19.0",
+    "@storybook/addon-essentials": "^8.6.4",
+    "@storybook/addon-interactions": "^8.6.4",
+    "@storybook/addon-onboarding": "^8.6.4",
+    "@storybook/blocks": "^8.6.4",
+    "@storybook/react": "^8.6.4",
+    "@storybook/react-vite": "^8.6.4",
+    "@storybook/test": "^8.6.4",
+    "@tauri-apps/cli": "^2.2.7",
+    "@types/react": "^18.0.24",
+    "@types/react-dom": "^18.0.8",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.19.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.18",
+    "eslint-plugin-storybook": "^0.11.4",
+    "globals": "^15.14.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-ref-composer": "^1.0.1",
+    "sass": "^1.77.6",
+    "storybook": "^8.6.4",
+    "typescript": "~5.7.2",
+    "typescript-eslint": "^8.22.0",
+    "vite": "^6.1.0"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-dom": "*",
+    "react-ref-composer": "*"
+  },
+  "eslintConfig": {
+    "extends": [
+      "plugin:storybook/recommended"
+    ]
+  }
+}

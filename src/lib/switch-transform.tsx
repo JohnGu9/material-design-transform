@@ -15,8 +15,8 @@ type AnimationTransition = {
 
 type AnimationTransitions = {
   opacity: AnimationTransition,
-  transform: AnimationTransition & { value: Property.Transform },
-}
+  transform: AnimationTransition & { value: Property.Transform; },
+};
 
 export type Transform = {
   enter: AnimationTransitions,
@@ -47,8 +47,13 @@ export function buildSwitchTransform<T extends keyof JSX.IntrinsicElements, Elem
         return { keyId, children, animationState: AnimationState.entered };
         // eslint-disable-next-line react-hooks/exhaustive-deps
       }, []);
-      const [, setTicker] = useState(false);
-      const updateNotify = () => setTicker(value => !value);
+      const [, setTicker] = useState(0);
+      const updateNotify = () => setTicker(value => {
+        if (value >= Number.MAX_SAFE_INTEGER) {
+          return Number.MIN_SAFE_INTEGER;
+        }
+        return value + 1;
+      });
 
       if (state.keyId !== keyId) {
         switch (state.animationState) {
