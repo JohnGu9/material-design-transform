@@ -1,13 +1,13 @@
-import { ComponentMeta, ComponentStory } from '@storybook/react';
+import { Meta, StoryFn } from '@storybook/react';
 import { useState } from 'react';
 import { FadeThrough } from '../lib';
 import "../App.css";
 
 export default {
   component: FadeThrough,
-} as ComponentMeta<typeof FadeThrough>;
+} as Meta<typeof FadeThrough>;
 
-const Template: ComponentStory<typeof FadeThrough> = (args) => {
+const Template: StoryFn<typeof FadeThrough> = (args) => {
   const [id, setId] = useState(0);
   return (
     <div className='App'>

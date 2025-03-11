@@ -226,7 +226,7 @@ function Hero({
         }
       }
     };
-    const observer = new ResizeObserver((_) => {
+    const observer = new ResizeObserver(() => {
       // entries do not contain position information (DomRect without x / y)
       // so call [getBoundingClientRect] to get DomRect without position information 
       rects.parentRect = parent.getBoundingClientRect();

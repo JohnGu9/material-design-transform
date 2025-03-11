@@ -124,8 +124,8 @@ Waiting google release precise motion guide.
 ## Interactive Demo
 
 ```console
-git clone https://github.com/JohnGu9/MaterialDesignTransform.git
-cd MaterialDesignTransform
+git clone https://github.com/JohnGu9/material-design-transform.git
+cd material-design-transform
 npm i
 npm run storybook
 ```
@@ -149,7 +149,7 @@ npm run storybook
 
 ## Issue report
 
-https://github.com/JohnGu9/MaterialDesignTransform/issues
+https://github.com/JohnGu9/material-design-transform/issues
 
 ## LICENSE
 

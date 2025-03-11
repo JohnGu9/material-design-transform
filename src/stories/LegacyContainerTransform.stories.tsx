@@ -1,5 +1,5 @@
 import { action } from '@storybook/addon-actions';
-import { ComponentMeta, ComponentStory } from '@storybook/react';
+import { Meta, StoryFn } from '@storybook/react';
 import { useState } from 'react';
 import { ContainerTransform } from '../lib/container-transform';
 import { ContainerTransformLayout } from '../lib/legacy-container-transform';
@@ -7,9 +7,9 @@ import "./ContainerTransform.css";
 
 export default {
   component: ContainerTransform,
-} as ComponentMeta<typeof ContainerTransform>;
+} as Meta<typeof ContainerTransform>;
 
-const Template: ComponentStory<typeof ContainerTransform> = (args) => {
+const Template: StoryFn<typeof ContainerTransform> = (args) => {
   const [id, setId] = useState(1 as number | undefined);
   return (
     <div className="main">
@@ -63,7 +63,7 @@ const Template: ComponentStory<typeof ContainerTransform> = (args) => {
 
 export const Primary = Template.bind({});
 
-const Template0: ComponentStory<typeof ContainerTransform> = (args) => {
+const Template0: StoryFn<typeof ContainerTransform> = (args) => {
   const [id, setId] = useState(0 as number | undefined);
   return (
     <div className="main">
@@ -101,7 +101,7 @@ const Template0: ComponentStory<typeof ContainerTransform> = (args) => {
 
 export const OverlayStyle = Template0.bind({});
 
-const Template1: ComponentStory<typeof ContainerTransform> = (args) => {
+const Template1: StoryFn<typeof ContainerTransform> = (args) => {
   const [id, setId] = useState(0 as number | undefined);
   return (
     <div className="main">

@@ -7,6 +7,7 @@ export function createComponent<Element, Props>(render: React.ForwardRefRenderFu
   return React.forwardRef<Element, Props & Omit<React.HTMLProps<Element>, keyof Props | "ref">>(render);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Curves {
   export function Easing(outgoing: number, incoming: number) {
     return `cubic-bezier(${outgoing}, 0.0, ${(1 - incoming).toFixed(2)}, 1)`;

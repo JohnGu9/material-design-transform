@@ -29,7 +29,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
       const innerRef = useRef<HTMLElement>(null);
       const scrimRef = useRef<HTMLDivElement>(null);
       const containerRef = useRef<HTMLDivElement>(null);
-      const overlays = useMemo(() => { return {} as { [key: Key]: Overlay }; }, []);
+      const overlays = useMemo(() => { return {} as { [key: Key]: Overlay; }; }, []);
       const { overlay, animationState, onEnter, onEntered, onExited,
         keyId: currentKeyId } = useOverlayTransformLayout(keyId, getOverlay(keyId, overlays));
 
@@ -98,8 +98,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
                 : relativeCenterPosition(
                   overlay.element,
                   innerRef.current!,
-                  overlayStyle,
-                  overlayTransitionProperty)),
+                  overlayStyle)),
               willChange: animating ? overlayTransitionProperty : undefined,
             },
           }, [
@@ -141,7 +140,7 @@ const scrimShowTransition = `opacity 90ms ${Curves.Easing(0, 0)}`;
 const scrimHiddenTransition = `opacity 250ms ${Curves.StandardEasing}`;
 
 
-function getOverlay(keyId: Key | undefined, overlays: { [key: Key]: Overlay }) {
+function getOverlay(keyId: Key | undefined, overlays: { [key: Key]: Overlay; }) {
   if (keyId === undefined) return undefined;
   return overlays[keyId];
 }
@@ -152,13 +151,13 @@ const fullSizeStyle: React.CSSProperties = {
   top: 0,
   width: '100%',
   height: '100%',
-}
+};
 
 const centerStyle: React.CSSProperties = {
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
-}
+};
 
 const defaultOverlayStyle: React.CSSProperties = {
   left: 0,
@@ -167,9 +166,9 @@ const defaultOverlayStyle: React.CSSProperties = {
   height: '100%',
   boxShadow: elevationBoxShadow(24),
   borderRadius: 0,
-}
+};
 
-function relativeCenterPosition(child: HTMLElement, parent: HTMLElement, overlayStyle: React.CSSProperties, transitionProperty: string): React.CSSProperties {
+function relativeCenterPosition(child: HTMLElement, parent: HTMLElement, overlayStyle: React.CSSProperties): React.CSSProperties {
   const c = child.getBoundingClientRect();
   const p = parent.getBoundingClientRect();
   return {
