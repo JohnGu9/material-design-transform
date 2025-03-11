@@ -1,5 +1,5 @@
-const fs = require('fs');
-const { join } = require('path');
+import fs from "fs";
+import { join } from "path";
 
 function deleteFolderRecursive(path) {
   if (fs.existsSync(path) && fs.lstatSync(path).isDirectory()) {
