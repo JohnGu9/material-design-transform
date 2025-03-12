@@ -18,12 +18,13 @@ export type AnimationSteps = {
 
 export type SwitchTransformProps = {
   keyId?: React.Key | null | undefined,
-
-  /* in normal case, this argument is useless, because switch animation is used to switch between two different type component */
-  /* switch between two different type component would trigger react to rebuild the component tree */
-  /* this argument only valid when switch on same type component */
-  forceRebuildAfterSwitched?: boolean,
   steps: AnimationSteps,
+
+  /* In normal case, this argument is useless because switch animation is usually used to switch between two different type component */
+  /* Switch between two different type component would trigger react to rebuild the component tree */
+  /* This argument only valid when switch on same type component */
+  /* But do you really need to rebuild same type component? Animation is not enough? */
+  forceRebuildAfterSwitched?: boolean,
 };
 
 export function buildSwitchTransform<T extends keyof JSX.IntrinsicElements, Element = TagToElementType<T>>(tag: T) {

@@ -59,7 +59,7 @@ function standardAnimationBuilder(enterTransform: Property.Transform, exitTransf
         pointerEvents: "none",
         willChange: 'transform, opacity, transition, pointer-events',
       },
-      duration: 300, // Math.max(300-0, 90+0)
+      duration: 90,
     },
   };
 }

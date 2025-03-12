@@ -42,7 +42,7 @@ const steps: AnimationSteps = {
       pointerEvents: "none",
       willChange: 'transform, opacity, transition, pointer-events',
     },
-    duration: 90, // Math.max(90+0, 90+0)
+    duration: 90,
   }
 }
 
