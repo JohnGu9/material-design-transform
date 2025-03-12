@@ -9,6 +9,9 @@ export function createComponent<Element, Props>(render: React.ForwardRefRenderFu
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Curves {
+  export function CubicBezier(x1: number, y1: number, x2: number, y2: number) {
+    return `cubic-bezier(${x1}, ${y1}, ${x2}, ${y2})`;
+  }
   export function Easing(outgoing: number, incoming: number) {
     return `cubic-bezier(${outgoing}, 0.0, ${(1 - incoming).toFixed(2)}, 1)`;
   }
@@ -17,7 +20,46 @@ export namespace Curves {
   // export const EmphasizedEasing = undefined;
   export const DeceleratedEasing = Easing(0.0, 0.8);
   export const AcceleratedEasing = Easing(0.4, 0.0);
+
+  export const M3 = {
+    Emphasized: CubicBezier(0.2, 0, 0, 1),
+    EmphasizedDecelerate: CubicBezier(0.05, 0.7, 0.1, 1.0), // Enter the screen / md.sys.motion.duration.medium4
+    EmphasizedAccelerate: CubicBezier(0.3, 0.0, 0.8, 0.15), // Exit the screen / md.sys.motion.duration.short4
+    Standard: CubicBezier(0.2, 0, 0, 1),
+    StandardDecelerate: CubicBezier(0, 0, 0, 1),
+    StandardAccelerate: CubicBezier(0.3, 0, 1, 1),
+    Legacy: CubicBezier(0.4, 0, 0.2, 1),
+    LegacyDecelerate: CubicBezier(0, 0, 0.2, 1),
+    LegacyAccelerate: CubicBezier(0.4, 0, 1, 1),
+    Linear: CubicBezier(0, 0, 1, 1),
+  };
 }
+
+// unit: ms
+export const Duration = {
+  M3: {
+    "md.sys.motion.duration.short1": 50,
+    "md.sys.motion.duration.short2": 100,
+    "md.sys.motion.duration.short3": 150,
+    "md.sys.motion.duration.short4": 200,
+
+    "md.sys.motion.duration.medium1": 250,
+    "md.sys.motion.duration.medium2": 300,
+    "md.sys.motion.duration.medium3": 350,
+    "md.sys.motion.duration.medium4": 400,
+
+    "md.sys.motion.duration.long1": 450,
+    "md.sys.motion.duration.long2": 500,
+    "md.sys.motion.duration.long3": 550,
+    "md.sys.motion.duration.long4": 600,
+
+    "md.sys.motion.duration.extra-long1": 700,
+    "md.sys.motion.duration.extra-long2": 800,
+    "md.sys.motion.duration.extra-long3": 900,
+    "md.sys.motion.duration.extra-long4": 1000,
+  },
+
+};
 
 type Enumerate<N extends number, Acc extends number[] = []> = Acc['length'] extends N
   ? Acc[number]
