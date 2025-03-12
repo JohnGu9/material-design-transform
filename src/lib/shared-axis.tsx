@@ -1,7 +1,7 @@
 import { Property } from 'csstype';
 import React from "react";
 import { createComponent, Curves, TagToElementType } from "./common";
-import { buildSwitchTransform, Transform } from './switch-transform';
+import { buildSwitchTransform, AnimationSteps } from './switch-transform';
 
 export enum SharedAxisTransform {
   /* y-axis */
@@ -17,7 +17,6 @@ export enum SharedAxisTransform {
 
 export type SharedAxisProps = {
   keyId?: React.Key | null | undefined,
-  switchCancelable?: boolean, // switch can be cancel before exit animation complete
   forceRebuildAfterSwitched?: boolean,
   transform?: SharedAxisTransform,
 };
@@ -28,39 +27,41 @@ export function buildSharedAxis<T extends keyof JSX.IntrinsicElements, Element =
   const SwitchTransform = buildSwitchTransform<T, Element>(tag);
   return createComponent<Element, SharedAxisProps>(
     function Render({ transform = SharedAxisTransform.fromBottomToTop, ...props }, ref) {
-      return <SwitchTransform transform={animationToTransform(transform)} {...props} ref={ref} />
+      return <SwitchTransform steps={toAnimationSteps(transform)} {...props} ref={ref} />;
     });
 }
 
-function standardAnimationBuilder(enterTransform: Property.Transform, exitTransform: Property.Transform): Transform {
+function standardAnimationBuilder(enterTransform: Property.Transform, exitTransform: Property.Transform): AnimationSteps {
   return {
-    enter: {
-      opacity: {
-        duration: 210,
-        curve: Curves.DeceleratedEasing,
-        delay: 0,
+    firstFrame: {
+      style: {
+        opacity: 0,
+        transform: enterTransform,
+        willChange: 'transform, opacity, transition'
       },
-      transform: {
-        value: enterTransform,
-        duration: 300,
-        curve: Curves.StandardEasing,
-        delay: -90,
-      }
+    },
+    enter: {
+      style: {
+        transition: `transform 300ms ${Curves.StandardEasing} -90ms, opacity 210ms ${Curves.DeceleratedEasing} 0ms`,
+        willChange: 'transition',
+      },
+      duration: 210, // Math.max(300-90, 210+0)
+    },
+    entered: {
+      style: {
+      },
     },
     exit: {
-      opacity: {
-        duration: 90,
-        curve: Curves.AcceleratedEasing,
-        delay: 0,
+      style: {
+        opacity: 0,
+        transform: exitTransform,
+        transition: `transform 300ms ${Curves.StandardEasing} 0ms, opacity 90ms ${Curves.AcceleratedEasing} 0ms`,
+        pointerEvents: "none",
+        willChange: 'transform, opacity, transition, pointer-events',
       },
-      transform: {
-        value: exitTransform,
-        duration: 300,
-        curve: Curves.StandardEasing,
-        delay: 0,
-      }
+      duration: 300, // Math.max(300-0, 90+0)
     },
-  }
+  };
 }
 
 const standardAnimation = {
@@ -70,8 +71,8 @@ const standardAnimation = {
   [SharedAxisTransform.fromLeftToRight]: standardAnimationBuilder('translateX(-30px)', 'translateX(30px)'),
   [SharedAxisTransform.fromFrontToBack]: standardAnimationBuilder('scale(1.1)', 'scale(0.8)'),
   [SharedAxisTransform.fromBackToFront]: standardAnimationBuilder('scale(0.8)', 'scale(1.1)'),
-}
+};
 
-function animationToTransform(transform: SharedAxisTransform): Transform {
+function toAnimationSteps(transform: SharedAxisTransform): AnimationSteps {
   return standardAnimation[transform];
 }

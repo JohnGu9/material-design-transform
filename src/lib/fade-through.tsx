@@ -1,9 +1,8 @@
 import { createComponent, Curves, TagToElementType } from "./common";
-import { buildSwitchTransform } from "./switch-transform";
+import { buildSwitchTransform, AnimationSteps } from "./switch-transform";
 
 export type FadeThroughProps = {
   keyId?: React.Key | null | undefined,
-  switchCancelable?: boolean, // switch can be cancel before exit animation complete
   forceRebuildAfterSwitched?: boolean,
 };
 
@@ -13,36 +12,37 @@ export function buildFadeThrough<T extends keyof JSX.IntrinsicElements, Element 
   const SwitchTransform = buildSwitchTransform<T, Element>(tag);
   return createComponent<Element, FadeThroughProps>(
     function Render(props, ref) {
-      return <SwitchTransform transform={transform} {...props} ref={ref} />
+      return <SwitchTransform steps={steps} {...props} ref={ref} />;
     });
 }
 
-const transform = {
-  enter: {
-    opacity: {
-      duration: 210,
-      curve: Curves.DeceleratedEasing,
-      delay: 0,
+const steps: AnimationSteps = {
+  firstFrame: {
+    style: {
+      opacity: 0,
+      transform: 'scale(0.92)',
+      willChange: 'transform, opacity, transition',
     },
-    transform: {
-      value: 'scale(0.92)',
-      duration: 210,
-      curve: Curves.StandardEasing,
-      delay: 0,
-    }
+  },
+  enter: {
+    style: {
+      transition: `transform 210ms ${Curves.StandardEasing} 0ms, opacity 210ms ${Curves.DeceleratedEasing} 0ms`,
+      willChange: 'transition',
+    },
+    duration: 210, // Math.max(210+0, 210+0)
+  },
+  entered: {
+    style: {
+    },
   },
   exit: {
-    opacity: {
-      duration: 90,
-      curve: Curves.AcceleratedEasing,
-      delay: 0,
+    style: {
+      opacity: 0,
+      transition: `transform 90ms ${Curves.StandardEasing} 0ms, opacity 90ms ${Curves.AcceleratedEasing} 0ms`,
+      pointerEvents: "none",
+      willChange: 'transform, opacity, transition, pointer-events',
     },
-    transform: {
-      value: 'scale(1)',
-      duration: 90,
-      curve: Curves.StandardEasing,
-      delay: 0,
-    }
+    duration: 90, // Math.max(90+0, 90+0)
   }
 }
 
