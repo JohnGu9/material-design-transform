@@ -18,6 +18,10 @@ export type AnimationSteps = {
 
 export type SwitchTransformProps = {
   keyId?: React.Key | null | undefined,
+
+  /* in normal case, this argument is useless, because switch animation is used to switch between two different type component */
+  /* switch between two different type component would trigger react to rebuild the component tree */
+  /* this argument only valid when switch on same type component */
   forceRebuildAfterSwitched?: boolean,
   steps: AnimationSteps,
 };
