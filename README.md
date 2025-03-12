@@ -52,7 +52,6 @@ const [id, setId] = React.useState(0);
 ```
 
 - New component only render after the old component exit animation completed.
-- Switch animation (SharedAxis / FadeThrough) state is toggled by properties changing and `transitionend` event of `opacity`. If opacity animate to 0 and toggle transitionend event that mean exit animation end. And if opacity animate to 1 and toggle transitionend event that mean enter animation end. Break transitionend event of opacity may break the component function.
 
 ```jsx
 const [id, setId] = React.useState(undefined);
