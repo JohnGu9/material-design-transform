@@ -116,24 +116,7 @@ import { SharedAxis, SharedAxisTransform, FadeThrough, ContainerTransformLayout 
 
 - `containerFit` - how the ContainerTransform's `container` fit in ContainerTransform when animating
 
-## LegacyContainerTransform
-
-```jsx
-import { ContainerTransformLayout } from "material-design-transform";
-```
-
-```jsx
-import { ContainerTransformLayout } from "material-design-transform/legacy-container-transform";
-```
-
-The different between new `ContainerTransform` and `LegacyContainerTransform` is that:
-
-- LegacyContainerTransformLayout - the container will change its `size` during animation
-- ContainerTransformLayout - the container do not change its size during animation (but just transform)
-
-Size changing may cause re-layout of ContainerTransform-`container`'s content, user by own should keep the layout consistent in different size during animation that is not easy.
-
-So new ContainerTransformLayout only use transform. If ContainerTransformLayout's size don't change, the container's size would not change. So that user no longer need to care about layout problem during animation under new ContainerTransformLayout. Take advantage of ContainerTransform-`containerFit` to unlock more animation styles ([check out demo](./src/stories/ContainerTransform.stories.tsx)).
+ContainerTransformLayout only use transform. If ContainerTransformLayout's size don't change, the container's size would not change. So that user no longer need to care about layout problem during animation under new ContainerTransformLayout. Take advantage of ContainerTransform-`containerFit` to unlock more animation styles ([check out demo](./src/stories/ContainerTransform.stories.tsx)).
 
 <img src="./document/preview-container-fit.gif" alt="preview" width="480"/>
 
