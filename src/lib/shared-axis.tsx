@@ -41,7 +41,11 @@ export function buildSharedAxis<T extends keyof JSX.IntrinsicElements, Element =
     });
 }
 
-function standardAnimationBuilder(enterTransform: Property.Transform, exitTransform: Property.Transform): AnimationSteps {
+function standardAnimationBuilder(enterTransform: Property.Transform, exitTransform: Property.Transform, duration: number, curves: { decelerated: string, accelerated: string, normal: string; }): AnimationSteps {
+  const segment = duration / 20;
+  function getDuration(segmentAmount: number) {
+    return (segment * segmentAmount).toFixed(0);
+  }
   return {
     firstFrame: {
       style: {
@@ -52,10 +56,10 @@ function standardAnimationBuilder(enterTransform: Property.Transform, exitTransf
     },
     enter: {
       style: {
-        transition: `transform 300ms ${Curves.StandardEasing} -90ms, opacity 210ms ${Curves.DeceleratedEasing} 0ms`,
+        transition: `transform ${getDuration(14)}ms ${curves.decelerated} 0ms, opacity ${getDuration(14)}ms ${curves.normal} 0ms`,
         willChange: 'transition',
       },
-      duration: 210, // Math.max(300-90, 210+0)
+      duration: segment * 14,
     },
     entered: {
       style: {
@@ -65,11 +69,11 @@ function standardAnimationBuilder(enterTransform: Property.Transform, exitTransf
       style: {
         opacity: 0,
         transform: exitTransform,
-        transition: `transform 300ms ${Curves.StandardEasing} 0ms, opacity 90ms ${Curves.AcceleratedEasing} 0ms`,
+        transition: `transform ${getDuration(6)}ms ${curves.accelerated} 0ms, opacity ${getDuration(6)}ms ${curves.normal} 0ms`,
         pointerEvents: "none",
         willChange: 'transform, opacity, transition, pointer-events',
       },
-      duration: 90,
+      duration: segment * 6,
     },
   };
 }
@@ -85,7 +89,7 @@ function standardAnimationBuilderM3(enterTransform: Property.Transform, exitTran
     },
     enter: {
       style: {
-        transition: `transform ${Duration.M3['md.sys.motion.duration.medium4']}ms ${Curves.M3.EmphasizedDecelerate} 0ms, opacity ${Duration.M3['md.sys.motion.duration.medium4']}ms ${Curves.M3.Standard} 0ms`,
+        transition: `transform ${Duration.M3['md.sys.motion.duration.medium4']}ms ${Curves.M3.EmphasizedDecelerate} 0ms, opacity ${Duration.M3['md.sys.motion.duration.medium4']}ms ${Curves.M3.Emphasized} 0ms`,
         willChange: 'transition',
       },
       duration: Duration.M3['md.sys.motion.duration.medium4'],
@@ -98,7 +102,7 @@ function standardAnimationBuilderM3(enterTransform: Property.Transform, exitTran
       style: {
         opacity: 0,
         transform: exitTransform,
-        transition: `transform ${Duration.M3['md.sys.motion.duration.short4']}ms ${Curves.M3.EmphasizedAccelerate} 0ms, opacity ${Duration.M3['md.sys.motion.duration.short4']}ms ${Curves.M3.Standard} 0ms`,
+        transition: `transform ${Duration.M3['md.sys.motion.duration.short4']}ms ${Curves.M3.EmphasizedAccelerate} 0ms, opacity ${Duration.M3['md.sys.motion.duration.short4']}ms ${Curves.M3.Emphasized} 0ms`,
         pointerEvents: "none",
         willChange: 'transform, opacity, transition, pointer-events',
       },
@@ -107,18 +111,43 @@ function standardAnimationBuilderM3(enterTransform: Property.Transform, exitTran
   };
 }
 
+const curvesM2 = {
+  decelerated: Curves.DeceleratedEasing, accelerated: Curves.AcceleratedEasing, normal: Curves.Linear,
+};
+
+const durationM2 = 300;
+
+// reference: https://angrytools.com/android/pixelcalc/
+// Although m2 document said: When designing for the web, replace dp with px (for pixel),
+// the pixel unit is inconstant.
+// Replace px with pt.
+function dpToPt(dp: number) {
+  // 72dpi: 1pt = 1px
+  // 160dpi: 1dp = 1px 
+  // 1pt => 1/72 in
+  // 1dp => 1/160 in
+  // 1dp => 72/160 pt
+  return dp * 72 / 160;
+}
+
+const dp21 = `${dpToPt(21).toFixed(0)}pt`;
+const dp9 = `${dpToPt(9).toFixed(0)}pt`;
+
+
+const dp20 = `${dpToPt(20).toFixed(0)}pt`;
+const dp10 = `${dpToPt(10).toFixed(0)}pt`;
 
 const standardAnimation = {
-  [SharedAxisTransform.fromBottomToTop]: standardAnimationBuilder('translateY(30px)', 'translateY(-30px)'),
-  [SharedAxisTransform.fromTopToBottom]: standardAnimationBuilder('translateY(-30px)', 'translateY(30px)'),
-  [SharedAxisTransform.fromRightToLeft]: standardAnimationBuilder('translateX(30px)', 'translateX(-30px)'),
-  [SharedAxisTransform.fromLeftToRight]: standardAnimationBuilder('translateX(-30px)', 'translateX(30px)'),
-  [SharedAxisTransform.fromFrontToBack]: standardAnimationBuilder('scale(1.1)', 'scale(0.8)'),
-  [SharedAxisTransform.fromBackToFront]: standardAnimationBuilder('M3scale(0.8)', 'scale(1.1)'),
-  [SharedAxisTransform.fromBottomToTopM3]: standardAnimationBuilderM3('translateY(30px)', 'translateY(-30px)'),
-  [SharedAxisTransform.fromTopToBottomM3]: standardAnimationBuilderM3('translateY(-30px)', 'translateY(30px)'),
-  [SharedAxisTransform.fromRightToLeftM3]: standardAnimationBuilderM3('translateX(30px)', 'translateX(-30px)'),
-  [SharedAxisTransform.fromLeftToRightM3]: standardAnimationBuilderM3('translateX(-30px)', 'translateX(30px)'),
+  [SharedAxisTransform.fromBottomToTop]: standardAnimationBuilder(`translateY(${dp21})`, `translateY(-${dp9})`, durationM2, curvesM2),
+  [SharedAxisTransform.fromTopToBottom]: standardAnimationBuilder(`translateY(-${dp21})`, `translateY(${dp9})`, durationM2, curvesM2),
+  [SharedAxisTransform.fromRightToLeft]: standardAnimationBuilder(`translateX(${dp21})`, `translateX(-${dp9})`, durationM2, curvesM2),
+  [SharedAxisTransform.fromLeftToRight]: standardAnimationBuilder(`translateX(-${dp21})`, `translateX(${dp9})`, durationM2, curvesM2),
+  [SharedAxisTransform.fromFrontToBack]: standardAnimationBuilder('scale(1.1)', 'scale(0.8)', durationM2, curvesM2),
+  [SharedAxisTransform.fromBackToFront]: standardAnimationBuilder('scale(0.8)', 'scale(1.1)', durationM2, curvesM2),
+  [SharedAxisTransform.fromBottomToTopM3]: standardAnimationBuilderM3(`translateY(${dp20})`, `translateY(-${dp10})`),
+  [SharedAxisTransform.fromTopToBottomM3]: standardAnimationBuilderM3(`translateY(-${dp20})`, `translateY(${dp10})`),
+  [SharedAxisTransform.fromRightToLeftM3]: standardAnimationBuilderM3(`translateX(${dp20})`, `translateX(-${dp10})`),
+  [SharedAxisTransform.fromLeftToRightM3]: standardAnimationBuilderM3(`translateX(-${dp20})`, `translateX(${dp10})`),
   [SharedAxisTransform.fromFrontToBackM3]: standardAnimationBuilderM3('scale(1.1)', 'scale(0.8)'),
   [SharedAxisTransform.fromBackToFrontM3]: standardAnimationBuilderM3('scale(0.8)', 'scale(1.1)'),
 };
