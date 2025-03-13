@@ -1,12 +1,18 @@
 import { Context, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 export type Key = string | number | symbol;
-export type AnimationState = true /* enter */ | false /* exit */ | undefined /* before enter */ | null /* enter animation end */;
-export type Overlays<Overlay> = { [key: Key]: Overlay | undefined };
+// export type AnimationState = true /* enter */ | false /* exit */ | undefined /* before enter */ | null /* enter animation end */;
+export enum AnimationState {
+  beforeEnter,
+  enter,
+  entered,
+  exit,
+};
+export type Overlays<Overlay> = { [key: Key]: Overlay | undefined; };
 export type OverlayTransformContext<Overlay> = {
   keyId: Key | undefined,
   overlays: Overlays<Overlay>,
-}
+};
 
 export function useOverlayTransformLayout<Overlay extends object>(
   keyId: Key | undefined,
@@ -19,29 +25,29 @@ export function useOverlayTransformLayout<Overlay extends object>(
   const [, setTicker] = useState(false);
   const notifyUpdate = () => { setTicker(value => !value); };
   const onEnter = useCallback(() => {
-    state.animationState = true;
+    state.animationState = AnimationState.enter;
     notifyUpdate();
   }, [state]);
   const onEntered = useCallback(() => {
-    state.animationState = null;
+    state.animationState = AnimationState.entered;
     notifyUpdate();
   }, [state]);
   const onExited = useCallback(() => {
     state.keyId = undefined;
     state.overlay = undefined;
-    state.animationState = undefined;
+    state.animationState = AnimationState.beforeEnter;
     notifyUpdate();
   }, [state]);
 
   if (state.keyId !== undefined) {
     if (state.keyId !== keyId) {
-      state.animationState = false;
+      state.animationState = AnimationState.exit;
     } else { // state.keyId === keyId
-      if (state.animationState === false)
-        state.animationState = true;
+      if (state.animationState === AnimationState.exit)
+        state.animationState = AnimationState.enter;
     }
   }
-  if (state.animationState !== false && state.keyId !== undefined) {
+  if (state.animationState !== AnimationState.exit && state.keyId !== undefined) {
     state.overlay = overlay;
   }
 
@@ -64,7 +70,7 @@ function buildState<KeyId, Overlay>() {
   return {
     keyId: undefined as KeyId | undefined,
     overlay: undefined as Overlay | undefined,
-    animationState: undefined as AnimationState,
+    animationState: AnimationState.beforeEnter,
   };
 }
 
@@ -83,7 +89,7 @@ export function useOverlayTransform<Overlay extends object>(
     const overlay = overlays[keyId];
     if (overlay !== undefined) throw Error(`keyId[${String(keyId)}] can't be reused under same ContainerTransformLayout`);
     overlays[keyId] = buildOverlay();
-    return () => { overlays[keyId] = undefined; }
+    return () => { overlays[keyId] = undefined; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [keyId, overlays]);
 

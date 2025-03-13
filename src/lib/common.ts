@@ -20,6 +20,7 @@ export namespace Curves {
   export const StandardEasing = Easing(0.4, 0.8);
   export const DeceleratedEasing = Easing(0.0, 0.8);
   export const AcceleratedEasing = Easing(0.4, 0.0);
+  export const Linear = "linear";
   // export const EmphasizedEasing = undefined;
 
   // reference: https://m3.material.io/styles/motion/easing-and-duration/applying-easing-and-duration
@@ -33,7 +34,7 @@ export namespace Curves {
     Legacy: CubicBezier(0.4, 0, 0.2, 1),
     LegacyDecelerate: CubicBezier(0, 0, 0.2, 1),
     LegacyAccelerate: CubicBezier(0.4, 0, 1, 1),
-    Linear: CubicBezier(0, 0, 1, 1),
+    Linear: "linear",
   };
 }
 

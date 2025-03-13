@@ -6,8 +6,8 @@ import { ContainerTransform, ContainerTransformLayout, ContainerFit, Fit } from 
 import "./ContainerTransform.css";
 
 export default {
-  component: ContainerTransform,
-} as Meta<typeof ContainerTransform>;
+  component: ContainerTransformLayout,
+} as Meta<typeof ContainerTransformLayout>;
 
 const testText = `Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.
 
@@ -17,7 +17,7 @@ const container =
     <div style={{ padding: 16 }}>{testText}</div>
   </div>;
 
-const Template: StoryFn<typeof ContainerTransform> = (args) => {
+const Template: StoryFn<typeof ContainerTransformLayout> = (args) => {
   const [id, setId] = useState(1 as number | undefined);
   return (
     <div className="main">
@@ -30,11 +30,11 @@ const Template: StoryFn<typeof ContainerTransform> = (args) => {
       <ContainerTransformLayout
         keyId={id}
         className="container-transform-layout"
-        onScrimClick={action('onScrimClick')}>
+        onScrimClick={action('onScrimClick')}
+        {...args}>
         <ContainerTransform
           container={<div className='full-size'>Container0</div>}
           style={{ backgroundColor: 'white', outline: '1px solid black' }}
-          {...args}
           keyId={0}>
           <div className="container">
             ContainerTransform0
@@ -44,7 +44,6 @@ const Template: StoryFn<typeof ContainerTransform> = (args) => {
         <ContainerTransform
           container={<div className='full-size'>Container1</div>}
           style={{ backgroundColor: 'white', outline: 'dotted' }}
-          {...args}
           keyId={1}>
           <div className="container">
             ContainerTransform1
@@ -58,7 +57,6 @@ const Template: StoryFn<typeof ContainerTransform> = (args) => {
             borderRadius: '10px',
             boxShadow: elevationBoxShadow(4),
           }}
-          {...args}
           keyId={2}>
           <div className="container">
             ContainerTransform2
@@ -67,9 +65,24 @@ const Template: StoryFn<typeof ContainerTransform> = (args) => {
       </ContainerTransformLayout>
     </div>
   );
-}
+};
 
-export const Primary = Template.bind({});
+export const M2 = Template.bind({});
+
+export const M2FadeThroughVariant = Template.bind({});
+M2FadeThroughVariant.args = {
+  transitionStyle: "M2FadeThroughVariant"
+};
+
+export const M3 = Template.bind({});
+M3.args = {
+  transitionStyle: "M3"
+};
+
+export const M3FadeThroughVariant = Template.bind({});
+M3FadeThroughVariant.args = {
+  transitionStyle: "M3FadeThroughVariant"
+};
 
 const Template0: StoryFn<typeof ContainerTransform> = (args) => {
   const [id, setId] = useState(0 as number | undefined);
@@ -104,7 +117,7 @@ const Template0: StoryFn<typeof ContainerTransform> = (args) => {
       </ContainerTransformLayout>
     </div>
   );
-}
+};
 
 export const OverlayPosition = Template0.bind({});
 
@@ -135,7 +148,7 @@ const Template1: StoryFn<typeof ContainerTransform> = (args) => {
       </ContainerTransformLayout>
     </div>
   );
-}
+};
 
 export const Mock = Template1.bind({});
 
@@ -175,7 +188,7 @@ const Template2: StoryFn<typeof ContainerTransform> = (args) => {
       </ContainerTransformLayout>
     </div>
   );
-}
+};
 
 export const containerFit = Template2.bind({});
 
@@ -237,6 +250,6 @@ const Template3: StoryFn<typeof ContainerTransform> = (args) => {
       </ContainerTransformLayout>
     </div>
   );
-}
+};
 
 export const fit = Template3.bind({});

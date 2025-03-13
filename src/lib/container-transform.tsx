@@ -1,6 +1,6 @@
 import React, { createElement, Fragment, useEffect, useMemo, useRef } from "react";
 import { useRefComposer } from "react-ref-composer";
-import { createComponent, Curves, elevationBoxShadow, TagToElementType } from "./common";
+import { createComponent, Curves, Duration, elevationBoxShadow, TagToElementType } from "./common";
 import { AnimationState, Key, useOverlayTransform, useOverlayTransformLayout } from "./overlay-transform";
 
 export enum Fit { width, height, both, originSize };
@@ -69,7 +69,7 @@ export type Overlay = {
 
 export const ContainerTransformLayoutContext = React.createContext({
   keyId: undefined as Key | undefined,
-  overlays: {} as { [key: Key]: Overlay | undefined },
+  overlays: {} as { [key: Key]: Overlay | undefined; },
 });
 
 export type ContainerTransformLayoutProps = {
@@ -81,6 +81,7 @@ export type ContainerTransformLayoutProps = {
   fit?: Fit,
   container?: React.ReactNode,  /* if [ContainerTransform]'s container not set */
   containerFit?: ContainerFit,  /* if [ContainerTransform]'s containerFit not set */
+  transitionStyle?: keyof typeof ContainerTransformTransition,
 };
 
 export const ContainerTransformLayout = buildContainerTransformLayout('div');
@@ -96,12 +97,13 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
       fit = Fit.originSize,
       container,
       containerFit = ContainerFit.width,
+      transitionStyle = "M2",
       children,
       style,
       ...props }, ref) {
       const composeRefs = useRefComposer();
       const innerRef = useRef<HTMLElement>(null);
-      const overlays = useMemo(() => { return {} as { [key: Key]: Overlay }; }, []);
+      const overlays = useMemo(() => { return {} as { [key: Key]: Overlay; }; }, []);
       const { overlay, animationState, onEnter, onEntered, onExited,
         keyId: currentKeyId } = useOverlayTransformLayout(keyId, getOverlay(keyId, overlays, fit, container, containerFit));
       const position = getPosition(overlayPosition);
@@ -127,6 +129,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
             position={position}
             overlayStyle={overlayStyle}
             willChangeDisable={willChangeDisable}
+            transitionStyle={transitionStyle}
             onScrimClick={onScrimClick}
             onEnter={onEnter}
             onEntered={onEntered}
@@ -138,7 +141,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
 }
 
 function Hero({
-  overlay, animationState, innerRef, position, overlayStyle, willChangeDisable,
+  overlay, animationState, innerRef, position, overlayStyle, willChangeDisable, transitionStyle,
   onScrimClick, onEnter, onEntered, onExited }: {
     overlay: {
       fit: Fit;
@@ -154,14 +157,26 @@ function Hero({
     position: OverlayPosition,
     overlayStyle: Omit<React.CSSProperties, 'left' | 'right' | 'top' | 'bottom' | 'width' | 'height' | 'transform'>,
     willChangeDisable: boolean | undefined,
+    transitionStyle: keyof typeof ContainerTransformTransition,
 
     onScrimClick: React.MouseEventHandler<HTMLDivElement> | undefined,
     onEnter: () => void,
     onEntered: () => void,
     onExited: () => void,
   }) {
-  const overlayShow = animationState === true || animationState === null;
-  const isAnimating = animationState !== null;
+  function getExtendState(animationState: AnimationState) {
+    switch (animationState) {
+      case AnimationState.beforeEnter:
+        return { overlayHide: false, isAnimating: true };
+      case AnimationState.enter:
+        return { overlayHide: true, isAnimating: true };
+      case AnimationState.entered:
+        return { overlayHide: true, isAnimating: false };
+      case AnimationState.exit:
+        return { overlayHide: false, isAnimating: true };
+    }
+  }
+  const { overlayHide, isAnimating } = getExtendState(animationState);
   const willChange = willChangeDisable ? false : isAnimating;
   const child = overlay.element;
   const parent = innerRef.current!;
@@ -183,19 +198,19 @@ function Hero({
   rects.position = position;
   rects.overlay = overlay;
 
-  if (animationState === false) {
+  if (animationState === AnimationState.exit) {
     rects.childRect = child.getBoundingClientRect();
   }
   const { childRect, parentRect, currentRect } = rects;
 
   useEffect(() => {
     switch (animationState) {
-      case undefined: {
+      case AnimationState.beforeEnter: {
         rects.parentRect = parent.getBoundingClientRect();
         onEnter();
         break;
       }
-      case false: {
+      case AnimationState.exit: {
         const { current } = scrimRef;
         if (current) {
           const style = getComputedStyle(current);
@@ -241,9 +256,44 @@ function Hero({
     return () => {
       observer.disconnect();
       overlayObserver.disconnect();
-    }
+    };
   }, [rects, parent]);
 
+  const transitionTemplate = ContainerTransformTransition[transitionStyle] ?? ContainerTransformTransition.M2;
+  function getAnimationDuration() {
+    switch (animationState) {
+      case AnimationState.beforeEnter:
+      case AnimationState.enter:
+        return transitionTemplate.enterDuration;
+      case AnimationState.entered:
+      case AnimationState.exit:
+        return transitionTemplate.exitDuration;
+    }
+  }
+  const animationDuration = getAnimationDuration();
+  type TransitionEndCallback = ((event: React.TransitionEvent<HTMLDivElement>) => unknown);
+  function getTransitionEndCallback(): { scrimCallback?: TransitionEndCallback, containerCallback?: TransitionEndCallback; } {
+    switch (animationState) {
+      case AnimationState.enter:
+        return {
+          containerCallback: event => {
+            if (event.target === containerRef.current && event.propertyName === 'transform') {
+              onEntered();
+            }
+          }
+        };
+      case AnimationState.exit:
+        return {
+          scrimCallback: event => {
+            if (event.target === scrimRef.current && event.propertyName === 'opacity') {
+              onExited();
+            }
+          }
+        };
+    }
+    return {};
+  }
+  const { scrimCallback, containerCallback } = getTransitionEndCallback();
   return (
     <>
       {/* scrim */}
@@ -251,18 +301,12 @@ function Hero({
         style={{
           ...fullSizeStyle,
           backgroundColor: 'rgba(0, 0, 0, 0.32)',
-          pointerEvents: overlayShow ? undefined : 'none',
-          opacity: overlayShow ? 1 : 0,
-          transition: selectTransition(animationState, scrimShowTransition, scrimHiddenTransition),
+          pointerEvents: overlayHide ? undefined : 'none',
+          opacity: overlayHide ? 1 : 0,
+          transition: getTransition(animationState, transitionTemplate.scrimEnterTransition, transitionTemplate.scrimExitTransition),
         }}
         onClick={onScrimClick}
-        onTransitionEnd={animationState === false
-          ? event => {
-            if (event.target === scrimRef.current && event.propertyName === 'opacity') {
-              onExited();
-            }
-          }
-          : undefined} />
+        onTransitionEnd={scrimCallback} />
       {/* overlay */}
       {createElement(overlay.tag, {
         ...(overlay.props),
@@ -273,17 +317,17 @@ function Hero({
           position: 'absolute',
           transform: 'translate(-50%, -50%)',
           transitionProperty: isAnimating ? 'left, top, width, height, box-shadow, border-radius' : undefined,
-          transitionDuration: isAnimating ? '250ms' : undefined,
-          transitionTimingFunction: isAnimating ? Curves.StandardEasing : undefined,
-          ...(overlayShow ? overlayStyleToStyle(overlayStyle, position) : relativeCenterPosition(childRect, parentRect)),
+          transitionDuration: isAnimating ? `${animationDuration}ms` : undefined,
+          transitionTimingFunction: isAnimating ? transitionTemplate.curve : undefined,
+          ...(overlayHide ? overlayStyleToStyle(overlayStyle, position) : relativeCenterPosition(childRect, parentRect)),
           willChange: willChange ? 'left, top, width, height, box-shadow, border-radius' : undefined,
         },
       }, <div
         style={{
-          pointerEvents: overlayShow ? 'none' : undefined,
-          opacity: overlayShow ? 0 : 1,
-          transform: overlayShow ? mockTransform(childRect, parentRect, overlay.fit) : 'scale(1, 1)',
-          transition: selectTransition(animationState, overlayShowTransition, overlayHiddenTransition),
+          pointerEvents: overlayHide ? 'none' : undefined,
+          opacity: overlayHide ? 0 : 1,
+          transform: overlayHide ? mockTransform(childRect, parentRect, overlay.fit) : 'scale(1, 1)',
+          transition: getTransition(animationState, transitionTemplate.overlayEnterTransition, transitionTemplate.overlayExitTransition),
           willChange: willChange ? 'opacity, transform' : undefined,
         }}>
         {overlay.mock ?? overlay.props.children}
@@ -299,26 +343,20 @@ function Hero({
           width: '100%',
           height: '100%',
           pointerEvents: 'none',
-          opacity: overlayShow ? 1 : 0,
-          transform: overlayShow ? distTransform(position) : srcTransform(childRect, parentRect, position, overlay.containerFit),
-          transition: selectTransition(animationState, containerShowTransition, containerHiddenTransition),
+          opacity: overlayHide ? 1 : 0,
+          transform: overlayHide ? distTransform(position) : srcTransform(childRect, parentRect, position, overlay.containerFit),
+          transition: getTransition(animationState, transitionTemplate.containerEnterTransition, transitionTemplate.containerExitTransition),
           willChange: willChange ? 'opacity, transform' : undefined,
         }}
-        onTransitionEnd={animationState === true
-          ? event => {
-            if (event.target === containerRef.current && event.propertyName === 'opacity') {
-              onEntered();
-            }
-          }
-          : undefined} >
+        onTransitionEnd={containerCallback} >
         <div ref={containerInnerRef}
           style={{
             // outline: '1px solid red', 
             position: 'relative',
             overflow: 'hidden',
-            transition: isAnimating ? `border-radius 250ms ${Curves.StandardEasing}` : undefined,
-            pointerEvents: overlayShow ? 'auto' : undefined,
-            borderRadius: overlayShow ? distBorderRadius(overlayStyle) : srcBorderRadius(child),
+            transition: isAnimating ? `border-radius ${animationDuration}ms ${transitionTemplate.curve}` : undefined,
+            pointerEvents: overlayHide ? 'auto' : undefined,
+            borderRadius: overlayHide ? distBorderRadius(overlayStyle) : srcBorderRadius(child),
             ...(compensateSize(currentRect, parentRect, position, overlay.containerFit)),
             willChange: willChange ? containerWrapperWillChange(overlay.containerFit) : undefined,
           }}>
@@ -329,16 +367,16 @@ function Hero({
   );
 }
 
-function selectTransition(animationState: AnimationState, openTransition: string, closeTransition: string) {
+function getTransition(animationState: AnimationState, enterTransition: string, exitTransition: string) {
   switch (animationState) {
-    case undefined:
-    case true: return openTransition;
-    case null: return undefined;
-    case false: return closeTransition;
+    case AnimationState.beforeEnter/* before enter */:
+    case AnimationState.enter/* enter */: return enterTransition;
+    case AnimationState.entered/* enter animation end */: return undefined;
+    case AnimationState.exit/* exit */: return exitTransition;
   }
 }
 
-function getOverlay(keyId: Key | undefined, overlays: { [key: Key]: Overlay }, fit: Fit, container: React.ReactNode, containerFit: ContainerFit) {
+function getOverlay(keyId: Key | undefined, overlays: { [key: Key]: Overlay; }, fit: Fit, container: React.ReactNode, containerFit: ContainerFit) {
   if (keyId === undefined) return undefined;
   const overlay = overlays[keyId];
   if (overlay === undefined) return undefined;
@@ -347,20 +385,76 @@ function getOverlay(keyId: Key | undefined, overlays: { [key: Key]: Overlay }, f
     fit: overlay.fit ?? fit,
     container: overlay.container ?? container,
     containerFit: overlay.containerFit ?? containerFit,
-  }
+  };
 }
-const scrimShowTransition = `opacity 90ms ${Curves.Easing(0, 0)}`;
-const scrimHiddenTransition = `opacity 250ms ${Curves.StandardEasing}`;
 
-const overlayShowTransition = buildTransition('opacity 60ms linear 60ms', ['transform'], '250ms', Curves.StandardEasing);
-const overlayHiddenTransition = buildTransition('opacity 133ms linear 117ms', ['transform'], '250ms', Curves.StandardEasing);
-
-const containerShowTransition = buildTransition('opacity 120ms linear 125ms', ['transform'], '250ms', Curves.StandardEasing);
-const containerHiddenTransition = buildTransition('opacity 50ms linear 67ms', ['transform'], '250ms', Curves.StandardEasing);
-
-function buildTransition(start: string, property: string[], duration: string, curve: string) {
-  return [start, ...property.map(value => `${value} ${duration} ${curve}`)].join(', ');
+function scrimShowDuration(standardDuration: number) {
+  return (standardDuration / 20 * 6).toFixed(0);
 }
+
+function enterOpacityTransition(standardDuration: number, standardCurve: string) {
+  const segment = standardDuration / 20;
+  return `opacity ${(segment * 4).toFixed(0)}ms ${standardCurve} ${(segment * 4).toFixed(0)}ms`;
+}
+
+function exitOpacityTransition(standardDuration: number, standardCurve: string) {
+  const segment = standardDuration / 15;
+  return `opacity ${(segment * 4).toFixed(0)}ms ${standardCurve} ${(segment * 3).toFixed(0)}ms`;
+}
+
+function buildNormalContainerTransformTransition(enterDuration: number, exitDuration: number, curve: string) {
+  return {
+    enterDuration,
+    exitDuration,
+    curve,
+
+    scrimEnterTransition: `opacity ${scrimShowDuration(enterDuration)}ms ${curve}`,
+    scrimExitTransition: `opacity ${exitDuration}ms ${curve}`,
+
+    overlayEnterTransition: `${enterOpacityTransition(enterDuration, curve)}, transform ${enterDuration}ms ${curve}`,
+    overlayExitTransition: `${exitOpacityTransition(exitDuration, curve)}, transform ${exitDuration}ms ${curve}`,
+
+    containerEnterTransition: `${enterOpacityTransition(enterDuration, curve)}, transform ${enterDuration}ms ${curve}`,
+    containerExitTransition: `${exitOpacityTransition(exitDuration, curve)}, transform ${exitDuration}ms ${curve}`,
+  };
+}
+
+function outgoingOpacityTransitionFadeThroughVariant(standardDuration: number, standardCurve: string) {
+  const segment = standardDuration / 20;
+  return `opacity ${(segment * 6).toFixed(0)}ms ${standardCurve} 0ms`;
+}
+
+function incomingOpacityTransitionFadeThroughVariant(standardDuration: number, standardCurve: string) {
+  const segment = standardDuration / 20;
+  return `opacity ${(segment * 14).toFixed(0)}ms ${standardCurve} ${(segment * 6).toFixed(0)}ms`;
+}
+
+function buildFadeThroughVariantContainerTransformTransition(enterDuration: number, exitDuration: number, curve: { normal: string, decelerated: string, accelerated: string; }) {
+  return {
+    enterDuration,
+    exitDuration,
+    curve,
+
+    scrimEnterTransition: `opacity ${scrimShowDuration(enterDuration)}ms ${curve.normal}`,
+    scrimExitTransition: `opacity ${exitDuration}ms ${curve.normal}`,
+
+    overlayEnterTransition: `${outgoingOpacityTransitionFadeThroughVariant(enterDuration, curve.decelerated)}, transform ${enterDuration}ms ${curve.normal}`,
+    overlayExitTransition: `${incomingOpacityTransitionFadeThroughVariant(exitDuration, curve.accelerated)}, transform ${exitDuration}ms ${curve.normal}`,
+
+    containerEnterTransition: `${incomingOpacityTransitionFadeThroughVariant(enterDuration, curve.accelerated)}, transform ${enterDuration}ms ${curve.normal}`,
+    containerExitTransition: `${outgoingOpacityTransitionFadeThroughVariant(exitDuration, curve.decelerated)}, transform ${exitDuration}ms ${curve.normal}`,
+  };
+}
+
+const M3Duration = Duration.M3["md.sys.motion.duration.long2"];
+
+// reference: https://m2.material.io/design/motion/the-motion-system.html#container-transform
+const ContainerTransformTransition = {
+  M2: buildNormalContainerTransformTransition(300, 250, Curves.StandardEasing),
+  M2FadeThroughVariant: buildFadeThroughVariantContainerTransformTransition(300, 250, { normal: Curves.StandardEasing, decelerated: Curves.Linear, accelerated: Curves.Linear }),
+  M3: buildNormalContainerTransformTransition(M3Duration, M3Duration, Curves.M3.Emphasized),
+  M3FadeThroughVariant: buildFadeThroughVariantContainerTransformTransition(M3Duration, M3Duration, { normal: Curves.M3.Emphasized, decelerated: Curves.M3.Linear, accelerated: Curves.M3.Linear }),
+};
 
 function getPosition(position: Partial<OverlayPosition> | undefined): OverlayPosition {
   return {
@@ -377,18 +471,18 @@ const fullSizeStyle: React.CSSProperties = {
   top: 0,
   width: '100%',
   height: '100%',
-}
+};
 
 const centerStyle: React.CSSProperties = {
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
-}
+};
 
 const defaultOverlayStyle = {
   boxShadow: elevationBoxShadow(24),
   borderRadius: 0,
-}
+};
 
 function overlayStyleToStyle(css: React.CSSProperties, position: OverlayPosition): React.CSSProperties {
   return {

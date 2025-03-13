@@ -2,7 +2,7 @@
 
 ## Introduce
 
-This component provide material design(v2) transform for html element under `react-dom` framework.
+This component provide material design 2 and material design 3 transform for html element under `react-dom` framework.
 
 ## Feature
 
@@ -89,6 +89,27 @@ const [id, setId] = React.useState(undefined);
 
 Change `keyId` to toggle switch animation. Only keyId change will toggle animation.
 
+## transitionStyle
+
+- "M2" meaning material design 2
+- "M3" meaning material design 3
+
+```jsx
+import { SharedAxis, SharedAxisTransform, FadeThrough, ContainerTransformLayout } from "material-design-transform";
+
+/* use material design 3 style */
+
+<SharedAxis keyId={id} transform={SharedAxisTransform.fromTopToBottomM3}>
+  {children}
+</SharedAxis>
+
+<FadeThrough keyId={id} transitionStyle="M3">{children}</FadeThrough>;
+
+<ContainerTransformLayout keyId={id} transitionStyle="M3"></ContainerTransformLayout>
+```
+
+- Check out storybook in this project for more details.
+
 ## ContainerTransform
 
 - `fit` - how the ContainerTransform's `children` / `mock` fit in ContainerTransform when animating
@@ -116,13 +137,9 @@ So new ContainerTransformLayout only use transform. If ContainerTransformLayout'
 
 <img src="./document/preview-container-fit.gif" alt="preview" width="480"/>
 
-## Material Design v3
-
-Waiting google release precise motion guide.
-
-https://m3.material.io/styles/motion/overview
-
 ## Interactive Demo
+
+- Run storybook in this project.
 
 ```console
 git clone https://github.com/JohnGu9/material-design-transform.git
