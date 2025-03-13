@@ -1,8 +1,9 @@
-import { createComponent, Curves, TagToElementType } from "./common";
+import { createComponent, Curves, Duration, TagToElementType } from "./common";
 import { buildSwitchTransform, AnimationSteps } from "./switch-transform";
 
 export type FadeThroughProps = {
   keyId?: React.Key | null | undefined,
+  transitionStyle?: "M2" | "M3",
   forceRebuildAfterSwitched?: boolean,
 };
 
@@ -11,9 +12,18 @@ export const FadeThrough = buildFadeThrough('div');
 export function buildFadeThrough<T extends keyof JSX.IntrinsicElements, Element = TagToElementType<T>>(tag: T) {
   const SwitchTransform = buildSwitchTransform<T, Element>(tag);
   return createComponent<Element, FadeThroughProps>(
-    function Render(props, ref) {
-      return <SwitchTransform steps={steps} {...props} ref={ref} />;
+    function Render({ transitionStyle, ...props }, ref) {
+      return <SwitchTransform steps={getStep(transitionStyle)} {...props} ref={ref} />;
     });
+}
+
+function getStep(transitionStyle?: string) {
+  switch (transitionStyle) {
+    case "M3":
+      return stepsM3;
+    default:
+      return steps;
+  }
 }
 
 const steps: AnimationSteps = {
@@ -43,6 +53,36 @@ const steps: AnimationSteps = {
       willChange: 'transform, opacity, transition, pointer-events',
     },
     duration: 90,
+  }
+};
+
+const stepsM3: AnimationSteps = {
+  firstFrame: {
+    style: {
+      opacity: 0,
+      transform: 'scale(0.92)',
+      willChange: 'transform, opacity, transition',
+    },
+  },
+  enter: {
+    style: {
+      transition: `transform ${Duration.M3['md.sys.motion.duration.medium4']}ms ${Curves.M3.EmphasizedDecelerate} 0ms, opacity ${Duration.M3['md.sys.motion.duration.medium4']}ms ${Curves.M3.Standard} 0ms`,
+      willChange: 'transition',
+    },
+    duration: Duration.M3['md.sys.motion.duration.medium4'],
+  },
+  entered: {
+    style: {
+    },
+  },
+  exit: {
+    style: {
+      opacity: 0,
+      transition: `transform ${Duration.M3['md.sys.motion.duration.short4']}ms ${Curves.M3.EmphasizedAccelerate} 0ms, opacity ${Duration.M3['md.sys.motion.duration.short4']}ms ${Curves.M3.Standard} 0ms`,
+      pointerEvents: "none",
+      willChange: 'transform, opacity, transition, pointer-events',
+    },
+    duration: Duration.M3['md.sys.motion.duration.short4'],
   }
 }
 

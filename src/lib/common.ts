@@ -16,11 +16,13 @@ export namespace Curves {
     return `cubic-bezier(${outgoing}, 0.0, ${(1 - incoming).toFixed(2)}, 1)`;
   }
 
+  // reference: https://m2.material.io/design/motion/the-motion-system.html
   export const StandardEasing = Easing(0.4, 0.8);
-  // export const EmphasizedEasing = undefined;
   export const DeceleratedEasing = Easing(0.0, 0.8);
   export const AcceleratedEasing = Easing(0.4, 0.0);
+  // export const EmphasizedEasing = undefined;
 
+  // reference: https://m3.material.io/styles/motion/easing-and-duration/applying-easing-and-duration
   export const M3 = {
     Emphasized: CubicBezier(0.2, 0, 0, 1),
     EmphasizedDecelerate: CubicBezier(0.05, 0.7, 0.1, 1.0), // Enter the screen / md.sys.motion.duration.medium4
@@ -37,6 +39,7 @@ export namespace Curves {
 
 // unit: ms
 export const Duration = {
+  // reference: https://m3.material.io/styles/motion/easing-and-duration/applying-easing-and-duration
   M3: {
     "md.sys.motion.duration.short1": 50,
     "md.sys.motion.duration.short2": 100,

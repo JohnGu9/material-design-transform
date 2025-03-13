@@ -1,6 +1,6 @@
 import { Property } from 'csstype';
 import React from "react";
-import { createComponent, Curves, TagToElementType } from "./common";
+import { createComponent, Curves, Duration, TagToElementType } from "./common";
 import { buildSwitchTransform, AnimationSteps } from './switch-transform';
 
 export enum SharedAxisTransform {
@@ -13,6 +13,16 @@ export enum SharedAxisTransform {
   /* z-axis */
   fromFrontToBack,
   fromBackToFront,
+
+  /* y-axis */
+  fromBottomToTopM3,
+  fromTopToBottomM3,
+  /* x-axis */
+  fromLeftToRightM3,
+  fromRightToLeftM3,
+  /* z-axis */
+  fromFrontToBackM3,
+  fromBackToFrontM3,
 };
 
 export type SharedAxisProps = {
@@ -64,13 +74,53 @@ function standardAnimationBuilder(enterTransform: Property.Transform, exitTransf
   };
 }
 
+function standardAnimationBuilderM3(enterTransform: Property.Transform, exitTransform: Property.Transform): AnimationSteps {
+  return {
+    firstFrame: {
+      style: {
+        opacity: 0,
+        transform: enterTransform,
+        willChange: 'transform, opacity, transition'
+      },
+    },
+    enter: {
+      style: {
+        transition: `transform ${Duration.M3['md.sys.motion.duration.medium4']}ms ${Curves.M3.EmphasizedDecelerate} 0ms, opacity ${Duration.M3['md.sys.motion.duration.medium4']}ms ${Curves.M3.Standard} 0ms`,
+        willChange: 'transition',
+      },
+      duration: Duration.M3['md.sys.motion.duration.medium4'], // Math.max(300-90, 210+0)
+    },
+    entered: {
+      style: {
+      },
+    },
+    exit: {
+      style: {
+        opacity: 0,
+        transform: exitTransform,
+        transition: `transform ${Duration.M3['md.sys.motion.duration.short4']}ms ${Curves.M3.EmphasizedAccelerate} 0ms, opacity ${Duration.M3['md.sys.motion.duration.short4']}ms ${Curves.M3.Standard} 0ms`,
+        pointerEvents: "none",
+        willChange: 'transform, opacity, transition, pointer-events',
+      },
+      duration: Duration.M3['md.sys.motion.duration.short4'],
+    },
+  };
+}
+
+
 const standardAnimation = {
   [SharedAxisTransform.fromBottomToTop]: standardAnimationBuilder('translateY(30px)', 'translateY(-30px)'),
   [SharedAxisTransform.fromTopToBottom]: standardAnimationBuilder('translateY(-30px)', 'translateY(30px)'),
   [SharedAxisTransform.fromRightToLeft]: standardAnimationBuilder('translateX(30px)', 'translateX(-30px)'),
   [SharedAxisTransform.fromLeftToRight]: standardAnimationBuilder('translateX(-30px)', 'translateX(30px)'),
   [SharedAxisTransform.fromFrontToBack]: standardAnimationBuilder('scale(1.1)', 'scale(0.8)'),
-  [SharedAxisTransform.fromBackToFront]: standardAnimationBuilder('scale(0.8)', 'scale(1.1)'),
+  [SharedAxisTransform.fromBackToFront]: standardAnimationBuilder('M3scale(0.8)', 'scale(1.1)'),
+  [SharedAxisTransform.fromBottomToTopM3]: standardAnimationBuilderM3('translateY(30px)', 'translateY(-30px)'),
+  [SharedAxisTransform.fromTopToBottomM3]: standardAnimationBuilderM3('translateY(-30px)', 'translateY(30px)'),
+  [SharedAxisTransform.fromRightToLeftM3]: standardAnimationBuilderM3('translateX(30px)', 'translateX(-30px)'),
+  [SharedAxisTransform.fromLeftToRightM3]: standardAnimationBuilderM3('translateX(-30px)', 'translateX(30px)'),
+  [SharedAxisTransform.fromFrontToBackM3]: standardAnimationBuilderM3('scale(1.1)', 'scale(0.8)'),
+  [SharedAxisTransform.fromBackToFrontM3]: standardAnimationBuilderM3('scale(0.8)', 'scale(1.1)'),
 };
 
 function toAnimationSteps(transform: SharedAxisTransform): AnimationSteps {

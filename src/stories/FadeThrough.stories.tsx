@@ -16,6 +16,11 @@ const Template: StoryFn<typeof FadeThrough> = (args) => {
       </span>
       <FadeThrough keyId={id} {...args}>{id}</FadeThrough>
     </div>);
-}
+};
 
-export const Primary = Template.bind({});
+export const M2 = Template.bind({});
+
+export const M3 = Template.bind({});
+M3.args = {
+  transitionStyle: "M3",
+};
