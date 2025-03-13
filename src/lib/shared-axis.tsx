@@ -88,7 +88,7 @@ function standardAnimationBuilderM3(enterTransform: Property.Transform, exitTran
         transition: `transform ${Duration.M3['md.sys.motion.duration.medium4']}ms ${Curves.M3.EmphasizedDecelerate} 0ms, opacity ${Duration.M3['md.sys.motion.duration.medium4']}ms ${Curves.M3.Standard} 0ms`,
         willChange: 'transition',
       },
-      duration: Duration.M3['md.sys.motion.duration.medium4'], // Math.max(300-90, 210+0)
+      duration: Duration.M3['md.sys.motion.duration.medium4'],
     },
     entered: {
       style: {
@@ -124,5 +124,5 @@ const standardAnimation = {
 };
 
 function toAnimationSteps(transform: SharedAxisTransform): AnimationSteps {
-  return standardAnimation[transform];
+  return standardAnimation[transform] ?? standardAnimation[SharedAxisTransform.fromBottomToTop];
 }
