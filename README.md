@@ -154,8 +154,14 @@ https://github.com/JohnGu9/material-design-transform/issues
 
 ## Caution
 
-Before version 3.0.0, the project build target is `es5`.
-After version 3.0.0, the project build target is `esnext`.
+## Caution
+
+Before version 3.0.0, the build target is `es5`.
+
+After version 3.0.0, the build target is `esnext`. You should use some bundle tool to help your bundle this project code into your own project (like `esbuild`). Set your tsconfig file `"module": "ESNext"` and build system (like `vite` config file `build.target`) to convert your code to target platform compatible code.
+
+Why `esnext`?
+Using `esnext` to compile this project and preform minimal transpiling. This can product less redundant code and reduce the package size for download.
 
 ## LICENSE
 
