@@ -1,4 +1,4 @@
-import React, { createElement, CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
+import { createElement, CSSProperties, Fragment, Key, useEffect, useMemo, useRef, useState } from 'react';
 import { useRefComposer } from "react-ref-composer";
 import { createComponent, TagToElementType } from './common';
 
@@ -17,7 +17,7 @@ export type AnimationSteps = {
 };
 
 export type SwitchTransformProps = {
-  keyId?: React.Key | null | undefined,
+  keyId?: Key | null | undefined,
   steps: AnimationSteps,
 
   /* In normal case, this argument is useless because switch animation is usually used to switch between two different type component */
@@ -126,9 +126,9 @@ export function buildSwitchTransform<T extends keyof JSX.IntrinsicElements, Elem
         style: { ...currentStyle(state.animationState, state.steps), ...style },
         ref: composeRefs(innerRef, ref),
         ...props,
-      }, <React.Fragment key={forceRebuildAfterSwitched ? state.keyId : undefined}>
+      }, <Fragment key={forceRebuildAfterSwitched ? state.keyId : undefined}>
         {state.children}
-      </React.Fragment>);
+      </Fragment>);
     });
 }
 

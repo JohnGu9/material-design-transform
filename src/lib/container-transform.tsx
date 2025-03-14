@@ -1,4 +1,4 @@
-import React, { createElement, Fragment, useEffect, useMemo, useRef } from "react";
+import React from "react";
 import { useRefComposer } from "react-ref-composer";
 import { createComponent, Curves, Duration, elevationBoxShadow, TagToElementType } from "./common";
 import { AnimationState, Key, useOverlayTransform, useOverlayTransformLayout } from "./overlay-transform";
@@ -27,7 +27,7 @@ export function buildContainerTransform<T extends keyof JSX.IntrinsicElements, E
       style,
       ...props }, ref) {
       const composeRefs = useRefComposer();
-      const innerRef = useRef<HTMLElement>(null);
+      const innerRef = React.useRef<HTMLElement>(null);
       const isOpened = useOverlayTransform(keyId,
         ContainerTransformLayoutContext,
         () => {
@@ -38,7 +38,7 @@ export function buildContainerTransform<T extends keyof JSX.IntrinsicElements, E
           };
         });
 
-      return createElement(tag, {
+      return React.createElement(tag, {
         style: {
           visibility: isOpened ? 'hidden' : undefined,
           pointerEvents: isOpened ? 'none' : undefined,
@@ -99,14 +99,14 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
       style,
       ...props }, ref) {
       const composeRefs = useRefComposer();
-      const innerRef = useRef<HTMLElement>(null);
-      const overlays = useMemo(() => { return {} as { [key: Key]: Overlay; }; }, []);
+      const innerRef = React.useRef<HTMLElement>(null);
+      const overlays = React.useMemo(() => { return {} as { [key: Key]: Overlay; }; }, []);
       const context = useContainerTransformContext({ fit, containerFit, transitionStyle });
       const { overlay, animationState, onEnter, onEntered, onExited,
         keyId: currentKeyId } = useOverlayTransformLayout(keyId, getOverlay(keyId, overlays, context.fit, container, context.containerFit));
       const position = getPosition(overlayPosition);
 
-      return createElement(tag, {
+      return React.createElement(tag, {
         style: { position: 'relative', ...style },
         ref: composeRefs(innerRef, ref),
         ...props,
@@ -132,7 +132,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
             onEnter={onEnter}
             onEntered={onEntered}
             onExited={onExited} />
-          : <Fragment key={2} />,
+          : <React.Fragment key={2} />,
       ]);
     }
   );
@@ -179,11 +179,11 @@ function Hero({
   const child = overlay.element;
   const parent = innerRef.current!;
 
-  const scrimRef = useRef<HTMLDivElement>(null);
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const containerInnerRef = useRef<HTMLDivElement>(null);
-  const rects = useMemo(() => {
+  const scrimRef = React.useRef<HTMLDivElement>(null);
+  const overlayRef = React.useRef<HTMLDivElement>(null);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const containerInnerRef = React.useRef<HTMLDivElement>(null);
+  const rects = React.useMemo(() => {
     const childRect = child.getBoundingClientRect();
     const parentRect = parent.getBoundingClientRect();
     return {
@@ -201,7 +201,7 @@ function Hero({
   }
   const { childRect, parentRect, currentRect } = rects;
 
-  useEffect(() => {
+  React.useEffect(() => {
     switch (animationState) {
       case AnimationState.beforeEnter: {
         rects.parentRect = parent.getBoundingClientRect();
@@ -219,7 +219,7 @@ function Hero({
     }
   }, [animationState, parent, rects, onEnter, onExited]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const current = containerInnerRef.current!;
     const update = () => {
       const { overlay: { containerFit }, currentRect, parentRect, position } = rects;
@@ -306,7 +306,7 @@ function Hero({
         onClick={onScrimClick}
         onTransitionEnd={scrimCallback} />
       {/* overlay */}
-      {createElement(overlay.tag, {
+      {React.createElement(overlay.tag, {
         ...(overlay.props),
         ref: overlayRef,
         style: {

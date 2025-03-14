@@ -152,6 +152,11 @@ npm run storybook
 
 https://github.com/JohnGu9/material-design-transform/issues
 
+## Caution
+
+Before version 3.0.0, the build target is `es5`.
+After version 3.0.0, the build target is `es2020`.
+
 ## LICENSE
 
 [MIT](./LICENSE)

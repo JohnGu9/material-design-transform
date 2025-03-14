@@ -1,5 +1,5 @@
 import { Property } from 'csstype';
-import React from "react";
+import { Key } from "react";
 import { createComponent, Curves, Duration, TagToElementType } from "./common";
 import { buildSwitchTransform, AnimationSteps } from './switch-transform';
 import { SharedAxisContextProps, SharedAxisTransform, useSharedAxisContext } from './context';
@@ -7,7 +7,7 @@ import { SharedAxisContextProps, SharedAxisTransform, useSharedAxisContext } fro
 export { SharedAxisTransform };
 
 export type SharedAxisProps = {
-  keyId?: React.Key | null | undefined,
+  keyId?: Key | null | undefined,
   forceRebuildAfterSwitched?: boolean,
 } & SharedAxisContextProps;
 
