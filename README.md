@@ -94,18 +94,18 @@ Change `keyId` to toggle switch animation. Only keyId change will toggle animati
 - "M2" meaning material design 2
 - "M3" meaning material design 3
 
+- use `MaterialDesignTransformContext` for global style settings. `MaterialDesignTransformContext` can config all the transition components nested inside itself (as long as the transition components don't explicitly set its own style)
+
 ```jsx
-import { SharedAxis, SharedAxisTransform, FadeThrough, ContainerTransformLayout } from "material-design-transform";
+import {
+  SharedAxis,
+  MaterialDesignTransformContext,
+} from "material-design-transform";
 
 /* use material design 3 style */
-
-<SharedAxis keyId={id} transform={SharedAxisTransform.fromTopToBottomM3}>
-  {children}
-</SharedAxis>
-
-<FadeThrough keyId={id} transitionStyle="M3">{children}</FadeThrough>;
-
-<ContainerTransformLayout keyId={id} transitionStyle="M3"></ContainerTransformLayout>
+<MaterialDesignTransformContext.Provider value={{ transitionStyle: "M3" }}>
+  <SharedAxis keyId={id}>{children}</SharedAxis>
+</MaterialDesignTransformContext.Provider>;
 ```
 
 - Check out storybook in this project for more details.

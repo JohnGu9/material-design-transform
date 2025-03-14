@@ -2,42 +2,23 @@ import { Property } from 'csstype';
 import React from "react";
 import { createComponent, Curves, Duration, TagToElementType } from "./common";
 import { buildSwitchTransform, AnimationSteps } from './switch-transform';
+import { SharedAxisContextProps, SharedAxisTransform, useSharedAxisContext } from './context';
 
-export enum SharedAxisTransform {
-  /* y-axis */
-  fromBottomToTop,
-  fromTopToBottom,
-  /* x-axis */
-  fromLeftToRight,
-  fromRightToLeft,
-  /* z-axis */
-  fromFrontToBack,
-  fromBackToFront,
-
-  /* y-axis */
-  fromBottomToTopM3,
-  fromTopToBottomM3,
-  /* x-axis */
-  fromLeftToRightM3,
-  fromRightToLeftM3,
-  /* z-axis */
-  fromFrontToBackM3,
-  fromBackToFrontM3,
-};
+export { SharedAxisTransform };
 
 export type SharedAxisProps = {
   keyId?: React.Key | null | undefined,
   forceRebuildAfterSwitched?: boolean,
-  transform?: SharedAxisTransform,
-};
+} & SharedAxisContextProps;
 
 export const SharedAxis = buildSharedAxis('div');
 
 export function buildSharedAxis<T extends keyof JSX.IntrinsicElements, Element = TagToElementType<T>>(tag: T) {
   const SwitchTransform = buildSwitchTransform<T, Element>(tag);
   return createComponent<Element, SharedAxisProps>(
-    function Render({ transform = SharedAxisTransform.fromBottomToTop, ...props }, ref) {
-      return <SwitchTransform steps={toAnimationSteps(transform)} {...props} ref={ref} />;
+    function Render({ transform, transitionStyle, unit, ...props }, ref) {
+      const context = useSharedAxisContext({ transform, transitionStyle, unit });
+      return <SwitchTransform steps={toAnimationSteps(context)} {...props} ref={ref} />;
     });
 }
 
@@ -130,28 +111,50 @@ function dpToPt(dp: number) {
   return dp * 72 / 160;
 }
 
+
+function buildStandardAnimation(incomingSlide: string, outgoingSlide: string) {
+  return {
+    [SharedAxisTransform.fromBottomToTop]: standardAnimationBuilder(`translateY(${incomingSlide})`, `translateY(-${outgoingSlide})`, durationM2, curvesM2),
+    [SharedAxisTransform.fromTopToBottom]: standardAnimationBuilder(`translateY(-${incomingSlide})`, `translateY(${outgoingSlide})`, durationM2, curvesM2),
+    [SharedAxisTransform.fromRightToLeft]: standardAnimationBuilder(`translateX(${incomingSlide})`, `translateX(-${outgoingSlide})`, durationM2, curvesM2),
+    [SharedAxisTransform.fromLeftToRight]: standardAnimationBuilder(`translateX(-${incomingSlide})`, `translateX(${outgoingSlide})`, durationM2, curvesM2),
+    [SharedAxisTransform.fromFrontToBack]: standardAnimationBuilder('scale(1.1)', 'scale(0.8)', durationM2, curvesM2),
+    [SharedAxisTransform.fromBackToFront]: standardAnimationBuilder('scale(0.8)', 'scale(1.1)', durationM2, curvesM2),
+  };
+}
+
 const dp21 = `${dpToPt(21).toFixed(0)}pt`;
 const dp9 = `${dpToPt(9).toFixed(0)}pt`;
 
+const standardAnimationDp = buildStandardAnimation(dp21, dp9);
+const standardAnimationPx = buildStandardAnimation("21px", "9px");
+
+function buildStandardAnimationM3(incomingSlide: string, outgoingSlide: string) {
+  return {
+    [SharedAxisTransform.fromBottomToTop]: standardAnimationBuilderM3(`translateY(${incomingSlide})`, `translateY(-${outgoingSlide})`),
+    [SharedAxisTransform.fromTopToBottom]: standardAnimationBuilderM3(`translateY(-${incomingSlide})`, `translateY(${outgoingSlide})`),
+    [SharedAxisTransform.fromRightToLeft]: standardAnimationBuilderM3(`translateX(${incomingSlide})`, `translateX(-${outgoingSlide})`),
+    [SharedAxisTransform.fromLeftToRight]: standardAnimationBuilderM3(`translateX(-${incomingSlide})`, `translateX(${outgoingSlide})`),
+    [SharedAxisTransform.fromFrontToBack]: standardAnimationBuilderM3('scale(1.1)', 'scale(0.8)'),
+    [SharedAxisTransform.fromBackToFront]: standardAnimationBuilderM3('scale(0.8)', 'scale(1.1)'),
+  };
+}
 
 const dp20 = `${dpToPt(20).toFixed(0)}pt`;
 const dp10 = `${dpToPt(10).toFixed(0)}pt`;
 
-const standardAnimation = {
-  [SharedAxisTransform.fromBottomToTop]: standardAnimationBuilder(`translateY(${dp21})`, `translateY(-${dp9})`, durationM2, curvesM2),
-  [SharedAxisTransform.fromTopToBottom]: standardAnimationBuilder(`translateY(-${dp21})`, `translateY(${dp9})`, durationM2, curvesM2),
-  [SharedAxisTransform.fromRightToLeft]: standardAnimationBuilder(`translateX(${dp21})`, `translateX(-${dp9})`, durationM2, curvesM2),
-  [SharedAxisTransform.fromLeftToRight]: standardAnimationBuilder(`translateX(-${dp21})`, `translateX(${dp9})`, durationM2, curvesM2),
-  [SharedAxisTransform.fromFrontToBack]: standardAnimationBuilder('scale(1.1)', 'scale(0.8)', durationM2, curvesM2),
-  [SharedAxisTransform.fromBackToFront]: standardAnimationBuilder('scale(0.8)', 'scale(1.1)', durationM2, curvesM2),
-  [SharedAxisTransform.fromBottomToTopM3]: standardAnimationBuilderM3(`translateY(${dp20})`, `translateY(-${dp10})`),
-  [SharedAxisTransform.fromTopToBottomM3]: standardAnimationBuilderM3(`translateY(-${dp20})`, `translateY(${dp10})`),
-  [SharedAxisTransform.fromRightToLeftM3]: standardAnimationBuilderM3(`translateX(${dp20})`, `translateX(-${dp10})`),
-  [SharedAxisTransform.fromLeftToRightM3]: standardAnimationBuilderM3(`translateX(-${dp20})`, `translateX(${dp10})`),
-  [SharedAxisTransform.fromFrontToBackM3]: standardAnimationBuilderM3('scale(1.1)', 'scale(0.8)'),
-  [SharedAxisTransform.fromBackToFrontM3]: standardAnimationBuilderM3('scale(0.8)', 'scale(1.1)'),
-};
+const standardAnimationM3Dp = buildStandardAnimationM3(dp20, dp10);
+const standardAnimationM3Px = buildStandardAnimationM3("20px", "10px");
 
-function toAnimationSteps(transform: SharedAxisTransform): AnimationSteps {
-  return standardAnimation[transform] ?? standardAnimation[SharedAxisTransform.fromBottomToTop];
+function toAnimationSteps(props: Required<SharedAxisContextProps>): AnimationSteps {
+  switch (props.transitionStyle) {
+    case 'M2': {
+      const standardAnimation = (props.unit === "dp" ? standardAnimationDp : standardAnimationPx);
+      return standardAnimation[props.transform] ?? standardAnimation[SharedAxisTransform.fromBottomToTop];
+    }
+    case 'M3': {
+      const standardAnimationM3 = (props.unit === "dp" ? standardAnimationM3Dp : standardAnimationM3Px);
+      return standardAnimationM3[props.transform] ?? standardAnimationM3[SharedAxisTransform.fromBottomToTop];
+    }
+  }
 }

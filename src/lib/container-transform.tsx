@@ -2,9 +2,9 @@ import React, { createElement, Fragment, useEffect, useMemo, useRef } from "reac
 import { useRefComposer } from "react-ref-composer";
 import { createComponent, Curves, Duration, elevationBoxShadow, TagToElementType } from "./common";
 import { AnimationState, Key, useOverlayTransform, useOverlayTransformLayout } from "./overlay-transform";
+import { ContainerFit, ContainerTransformContextProps, Fit, useContainerTransformContext } from "./context";
 
-export enum Fit { width, height, both, originSize };
-export enum ContainerFit { width, height, both };
+export { ContainerFit, Fit };
 
 export type ContainerTransformProps = {
   keyId: Key,
@@ -78,11 +78,8 @@ export type ContainerTransformLayoutProps = {
   overlayStyle?: Omit<React.CSSProperties, 'left' | 'right' | 'top' | 'bottom' | 'width' | 'height' | 'transform'>,
   onScrimClick?: React.MouseEventHandler<HTMLDivElement>,
   willChangeDisable?: boolean,
-  fit?: Fit,
   container?: React.ReactNode,  /* if [ContainerTransform]'s container not set */
-  containerFit?: ContainerFit,  /* if [ContainerTransform]'s containerFit not set */
-  transitionStyle?: keyof typeof ContainerTransformTransition,
-};
+} & ContainerTransformContextProps;
 
 export const ContainerTransformLayout = buildContainerTransformLayout('div');
 
@@ -94,18 +91,19 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
       willChangeDisable,
       overlayPosition,
       overlayStyle = defaultOverlayStyle,
-      fit = Fit.originSize,
+      fit,
       container,
-      containerFit = ContainerFit.width,
-      transitionStyle = "M2",
+      containerFit,
+      transitionStyle,
       children,
       style,
       ...props }, ref) {
       const composeRefs = useRefComposer();
       const innerRef = useRef<HTMLElement>(null);
       const overlays = useMemo(() => { return {} as { [key: Key]: Overlay; }; }, []);
+      const context = useContainerTransformContext({ fit, containerFit, transitionStyle });
       const { overlay, animationState, onEnter, onEntered, onExited,
-        keyId: currentKeyId } = useOverlayTransformLayout(keyId, getOverlay(keyId, overlays, fit, container, containerFit));
+        keyId: currentKeyId } = useOverlayTransformLayout(keyId, getOverlay(keyId, overlays, context.fit, container, context.containerFit));
       const position = getPosition(overlayPosition);
 
       return createElement(tag, {
@@ -129,7 +127,7 @@ export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicEleme
             position={position}
             overlayStyle={overlayStyle}
             willChangeDisable={willChangeDisable}
-            transitionStyle={transitionStyle}
+            transitionStyle={context.transitionStyle}
             onScrimClick={onScrimClick}
             onEnter={onEnter}
             onEntered={onEntered}

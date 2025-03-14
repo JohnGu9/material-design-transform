@@ -1,11 +1,11 @@
 import { createComponent, Curves, Duration, TagToElementType } from "./common";
+import { FadeThroughContextProps, useFadeThroughContext } from "./context";
 import { buildSwitchTransform, AnimationSteps } from "./switch-transform";
 
 export type FadeThroughProps = {
   keyId?: React.Key | null | undefined,
-  transitionStyle?: "M2" | "M3",
   forceRebuildAfterSwitched?: boolean,
-};
+} & FadeThroughContextProps;
 
 export const FadeThrough = buildFadeThrough('div');
 
@@ -13,12 +13,13 @@ export function buildFadeThrough<T extends keyof JSX.IntrinsicElements, Element 
   const SwitchTransform = buildSwitchTransform<T, Element>(tag);
   return createComponent<Element, FadeThroughProps>(
     function Render({ transitionStyle, ...props }, ref) {
-      return <SwitchTransform steps={getStep(transitionStyle)} {...props} ref={ref} />;
+      const context = useFadeThroughContext({ transitionStyle });
+      return <SwitchTransform steps={getStep(context)} {...props} ref={ref} />;
     });
 }
 
-function getStep(transitionStyle?: string) {
-  switch (transitionStyle) {
+function getStep(props: Required<FadeThroughContextProps>) {
+  switch (props.transitionStyle) {
     case "M3":
       return stepsM3;
     default:
