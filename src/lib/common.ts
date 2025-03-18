@@ -25,12 +25,12 @@ export namespace Curves {
 
   // reference: https://m3.material.io/styles/motion/easing-and-duration/applying-easing-and-duration
   export const M3 = {
-    Emphasized: CubicBezier(0.2, 0, 0, 1),
+    Emphasized: CubicBezier(0.2, 0, 0, 1),                  // Begin and end on screen / md.sys.motion.duration.long3
     EmphasizedDecelerate: CubicBezier(0.05, 0.7, 0.1, 1.0), // Enter the screen / md.sys.motion.duration.medium4
     EmphasizedAccelerate: CubicBezier(0.3, 0.0, 0.8, 0.15), // Exit the screen / md.sys.motion.duration.short4
-    Standard: CubicBezier(0.2, 0, 0, 1),
-    StandardDecelerate: CubicBezier(0, 0, 0, 1),
-    StandardAccelerate: CubicBezier(0.3, 0, 1, 1),
+    Standard: CubicBezier(0.2, 0, 0, 1),                    // Begin and end on screen / md.sys.motion.duration.medium2
+    StandardDecelerate: CubicBezier(0, 0, 0, 1),            // Enter the screen / md.sys.motion.duration.medium1
+    StandardAccelerate: CubicBezier(0.3, 0, 1, 1),          // Exit the screen / md.sys.motion.duration.short4
     Legacy: CubicBezier(0.4, 0, 0.2, 1),
     LegacyDecelerate: CubicBezier(0, 0, 0.2, 1),
     LegacyAccelerate: CubicBezier(0.4, 0, 1, 1),
@@ -161,10 +161,7 @@ const ambientMap = {
   24: '0px 9px 46px 8px',
 };
 
-export function elevationBoxShadow(level: Range<1, 25>, rgb?: string, opacityBoost?: number) {
-  rgb ??= '0, 0, 0';
-  opacityBoost ??= 0;
-
+export function elevationBoxShadow(level: Range<1, 25>, rgb = '0, 0, 0', opacityBoost = 0) {
   const umbraZValue = umbraMap[level];
   const penumbraZValue = penumbraMap[level];
   const ambientZValue = ambientMap[level];

@@ -40,7 +40,7 @@ function standardAnimationBuilder(enterTransform: Property.Transform, exitTransf
         transition: `transform ${getDuration(14)}ms ${curves.decelerated} 0ms, opacity ${getDuration(14)}ms ${curves.normal} 0ms`,
         willChange: 'transition',
       },
-      duration: segment * 14,
+      duration: Math.round(segment * 14),
     },
     entered: {
       style: {
@@ -54,7 +54,7 @@ function standardAnimationBuilder(enterTransform: Property.Transform, exitTransf
         pointerEvents: "none",
         willChange: 'transform, opacity, transition, pointer-events',
       },
-      duration: segment * 6,
+      duration: Math.round(segment * 6),
     },
   };
 }

@@ -70,8 +70,8 @@ export function buildSwitchTransform<T extends keyof JSX.IntrinsicElements, Elem
       } // lock children when key changed
 
       useEffect(() => {
-        // using js timer instance of transition end callback
-        // so it no longer support animation slow down in browser dev tools
+        // using js timer instead of transition end callback
+        // so it no longer support debug when turn on animation slow down in browser dev tools
         // but more robust than before
         if (changed) {// assert state.animationState !== AnimationState.firstFrame
           switch (state.animationState) {
@@ -89,11 +89,7 @@ export function buildSwitchTransform<T extends keyof JSX.IntrinsicElements, Elem
             updateNotify();
           }, state.steps.exit.duration);
           updateNotify();
-          return () => {
-            if (state.animationState !== AnimationState.firstFrame) {
-              clearTimeout(timer);
-            }
-          };
+          return () => clearTimeout(timer);
         } else /* changed === false */ {
           switch (state.animationState) {
             case AnimationState.enter:
@@ -114,11 +110,7 @@ export function buildSwitchTransform<T extends keyof JSX.IntrinsicElements, Elem
             updateNotify();
           }, state.steps.enter.duration);
           updateNotify();
-          return () => {
-            if (state.animationState !== AnimationState.entered) {
-              clearTimeout(timer);
-            }
-          };
+          return () => clearTimeout(timer);
         }
       }, [changed, state]);
 

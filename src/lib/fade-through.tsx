@@ -27,6 +27,10 @@ function getStep(props: Required<FadeThroughContextProps>) {
   }
 }
 
+const segmentM2 = 300 / 20;
+const durationEnterM2 = Math.round(segmentM2 * 14);
+const durationExitM2 = Math.round(segmentM2 * 6);
+
 const steps: AnimationSteps = {
   firstFrame: {
     style: {
@@ -37,10 +41,10 @@ const steps: AnimationSteps = {
   },
   enter: {
     style: {
-      transition: `transform 210ms ${Curves.StandardEasing} 0ms, opacity 210ms ${Curves.DeceleratedEasing} 0ms`,
+      transition: `transform ${durationEnterM2}ms ${Curves.StandardEasing} 0ms, opacity ${durationEnterM2}ms ${Curves.DeceleratedEasing} 0ms`,
       willChange: 'transition',
     },
-    duration: 210, // Math.max(210+0, 210+0)
+    duration: durationEnterM2,
   },
   entered: {
     style: {
@@ -49,11 +53,11 @@ const steps: AnimationSteps = {
   exit: {
     style: {
       opacity: 0,
-      transition: `transform 90ms ${Curves.StandardEasing} 0ms, opacity 90ms ${Curves.AcceleratedEasing} 0ms`,
+      transition: `transform ${durationExitM2}ms ${Curves.StandardEasing} 0ms, opacity ${durationExitM2}ms ${Curves.AcceleratedEasing} 0ms`,
       pointerEvents: "none",
       willChange: 'transform, opacity, transition, pointer-events',
     },
-    duration: 90,
+    duration: durationExitM2,
   }
 };
 
