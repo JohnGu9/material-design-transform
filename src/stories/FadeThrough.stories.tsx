@@ -1,4 +1,4 @@
-import { Meta, StoryFn } from '@storybook/react';
+import { Meta, StoryFn } from '@storybook/react-vite';
 import { useState } from 'react';
 import { FadeThrough } from '../lib';
 import "../App.css";

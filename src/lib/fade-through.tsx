@@ -1,3 +1,4 @@
+import React from "react";
 import { createComponent, Curves, Duration, TagToElementType } from "./common";
 import { FadeThroughContextProps, useFadeThroughContext } from "./context";
 import { buildSwitchTransform, AnimationSteps } from "./switch-transform";
@@ -9,7 +10,8 @@ export type FadeThroughProps = {
 
 export const FadeThrough = buildFadeThrough('div');
 
-export function buildFadeThrough<T extends keyof JSX.IntrinsicElements, Element = TagToElementType<T>>(tag: T) {
+// eslint-disable-next-line react-refresh/only-export-components
+export function buildFadeThrough<T extends keyof React.JSX.IntrinsicElements, Element = TagToElementType<T>>(tag: T) {
   const SwitchTransform = buildSwitchTransform<T, Element>(tag);
   return createComponent<Element, FadeThroughProps>(
     function Render({ transitionStyle, ...props }, ref) {
@@ -44,7 +46,6 @@ const steps: AnimationSteps = {
       transition: `transform ${durationEnterM2}ms ${Curves.StandardEasing} 0ms, opacity ${durationEnterM2}ms ${Curves.DeceleratedEasing} 0ms`,
       willChange: 'transition',
     },
-    duration: durationEnterM2,
   },
   entered: {
     style: {
@@ -57,7 +58,6 @@ const steps: AnimationSteps = {
       pointerEvents: "none",
       willChange: 'transform, opacity, transition, pointer-events',
     },
-    duration: durationExitM2,
   }
 };
 
@@ -74,7 +74,6 @@ const stepsM3: AnimationSteps = {
       transition: `transform ${Duration.M3['md.sys.motion.duration.medium4']}ms ${Curves.M3.EmphasizedDecelerate} 0ms, opacity ${Duration.M3['md.sys.motion.duration.medium4']}ms ${Curves.M3.Standard} 0ms`,
       willChange: 'transition',
     },
-    duration: Duration.M3['md.sys.motion.duration.medium4'],
   },
   entered: {
     style: {
@@ -87,7 +86,6 @@ const stepsM3: AnimationSteps = {
       pointerEvents: "none",
       willChange: 'transform, opacity, transition, pointer-events',
     },
-    duration: Duration.M3['md.sys.motion.duration.short4'],
   }
 }
 

@@ -5,6 +5,7 @@
 		"declaration": true,
 		"skipLibCheck": true,
 		"esModuleInterop": true,
+		"rootDir": "src/lib",
 		"outDir": "dist",
 		"target": "ESNext",
 		"module": "ESNext",

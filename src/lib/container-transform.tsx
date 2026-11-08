@@ -16,7 +16,8 @@ export type ContainerTransformProps = {
 
 export const ContainerTransform = buildContainerTransform('div');
 
-export function buildContainerTransform<T extends keyof JSX.IntrinsicElements, Element = TagToElementType<T>>(tag: T) {
+// eslint-disable-next-line react-refresh/only-export-components
+export function buildContainerTransform<T extends keyof React.JSX.IntrinsicElements, Element = TagToElementType<T>>(tag: T) {
   return createComponent<Element, ContainerTransformProps>(
     function ({
       keyId,
@@ -67,6 +68,7 @@ export type Overlay = {
   containerFit?: ContainerFit,
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const ContainerTransformLayoutContext = React.createContext({
   keyId: undefined as Key | undefined,
   overlays: {} as { [key: Key]: Overlay | undefined; },
@@ -83,7 +85,8 @@ export type ContainerTransformLayoutProps = {
 
 export const ContainerTransformLayout = buildContainerTransformLayout('div');
 
-export function buildContainerTransformLayout<T extends keyof JSX.IntrinsicElements, Element = TagToElementType<T>>(tag: T) {
+// eslint-disable-next-line react-refresh/only-export-components
+export function buildContainerTransformLayout<T extends keyof React.JSX.IntrinsicElements, Element = TagToElementType<T>>(tag: T) {
   return createComponent<Element, ContainerTransformLayoutProps>(
     function ({
       keyId,
@@ -151,7 +154,7 @@ function Hero({
       mock?: React.ReactNode;
     },
     animationState: AnimationState,
-    innerRef: React.RefObject<HTMLElement>,
+    innerRef: React.RefObject<HTMLElement | null>,
     position: OverlayPosition,
     overlayStyle: Omit<React.CSSProperties, 'left' | 'right' | 'top' | 'bottom' | 'width' | 'height' | 'transform'>,
     willChangeDisable: boolean | undefined,

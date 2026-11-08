@@ -3,6 +3,7 @@ import { Key } from "react";
 import { createComponent, Curves, Duration, TagToElementType } from "./common";
 import { buildSwitchTransform, AnimationSteps } from './switch-transform';
 import { SharedAxisContextProps, SharedAxisTransform, useSharedAxisContext } from './context';
+import React from 'react';
 
 export { SharedAxisTransform };
 
@@ -13,7 +14,8 @@ export type SharedAxisProps = {
 
 export const SharedAxis = buildSharedAxis('div');
 
-export function buildSharedAxis<T extends keyof JSX.IntrinsicElements, Element = TagToElementType<T>>(tag: T) {
+// eslint-disable-next-line react-refresh/only-export-components
+export function buildSharedAxis<T extends keyof React.JSX.IntrinsicElements, Element = TagToElementType<T>>(tag: T) {
   const SwitchTransform = buildSwitchTransform<T, Element>(tag);
   return createComponent<Element, SharedAxisProps>(
     function Render({ transform, transitionStyle, unit, ...props }, ref) {
@@ -40,7 +42,6 @@ function standardAnimationBuilder(enterTransform: Property.Transform, exitTransf
         transition: `transform ${getDuration(14)}ms ${curves.decelerated} 0ms, opacity ${getDuration(14)}ms ${curves.normal} 0ms`,
         willChange: 'transition',
       },
-      duration: Math.round(segment * 14),
     },
     entered: {
       style: {
@@ -54,7 +55,6 @@ function standardAnimationBuilder(enterTransform: Property.Transform, exitTransf
         pointerEvents: "none",
         willChange: 'transform, opacity, transition, pointer-events',
       },
-      duration: Math.round(segment * 6),
     },
   };
 }
@@ -73,7 +73,6 @@ function standardAnimationBuilderM3(enterTransform: Property.Transform, exitTran
         transition: `transform ${Duration.M3['md.sys.motion.duration.medium4']}ms ${Curves.M3.EmphasizedDecelerate} 0ms, opacity ${Duration.M3['md.sys.motion.duration.medium4']}ms ${Curves.M3.Emphasized} 0ms`,
         willChange: 'transition',
       },
-      duration: Duration.M3['md.sys.motion.duration.medium4'],
     },
     entered: {
       style: {
@@ -87,7 +86,6 @@ function standardAnimationBuilderM3(enterTransform: Property.Transform, exitTran
         pointerEvents: "none",
         willChange: 'transform, opacity, transition, pointer-events',
       },
-      duration: Duration.M3['md.sys.motion.duration.short4'],
     },
   };
 }
