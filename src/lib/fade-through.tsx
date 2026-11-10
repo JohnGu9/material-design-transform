@@ -46,6 +46,9 @@ const steps: AnimationSteps = {
       transition: `transform ${durationEnterM2}ms ${Curves.StandardEasing} 0ms, opacity ${durationEnterM2}ms ${Curves.DeceleratedEasing} 0ms`,
       willChange: 'transition',
     },
+    isTransitionEnd: (e) => {
+      return e.propertyName === 'opacity';
+    }
   },
   entered: {
     style: {
@@ -58,6 +61,9 @@ const steps: AnimationSteps = {
       pointerEvents: "none",
       willChange: 'transform, opacity, transition, pointer-events',
     },
+    isTransitionEnd: (e) => {
+      return e.propertyName === 'opacity';
+    }
   }
 };
 
@@ -74,6 +80,9 @@ const stepsM3: AnimationSteps = {
       transition: `transform ${Duration.M3['md.sys.motion.duration.medium4']}ms ${Curves.M3.EmphasizedDecelerate} 0ms, opacity ${Duration.M3['md.sys.motion.duration.medium4']}ms ${Curves.M3.Standard} 0ms`,
       willChange: 'transition',
     },
+    isTransitionEnd: (e) => {
+      return e.propertyName === 'opacity';
+    }
   },
   entered: {
     style: {
@@ -86,6 +95,9 @@ const stepsM3: AnimationSteps = {
       pointerEvents: "none",
       willChange: 'transform, opacity, transition, pointer-events',
     },
+    isTransitionEnd: (e) => {
+      return e.propertyName === 'opacity';
+    }
   }
 }
 

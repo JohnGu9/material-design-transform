@@ -42,6 +42,9 @@ function standardAnimationBuilder(enterTransform: Property.Transform, exitTransf
         transition: `transform ${getDuration(14)}ms ${curves.decelerated} 0ms, opacity ${getDuration(14)}ms ${curves.normal} 0ms`,
         willChange: 'transition',
       },
+      isTransitionEnd: (e) => {
+        return e.propertyName === 'opacity';
+      }
     },
     entered: {
       style: {
@@ -55,6 +58,9 @@ function standardAnimationBuilder(enterTransform: Property.Transform, exitTransf
         pointerEvents: "none",
         willChange: 'transform, opacity, transition, pointer-events',
       },
+      isTransitionEnd: (e) => {
+        return e.propertyName === 'opacity';
+      }
     },
   };
 }
@@ -73,6 +79,9 @@ function standardAnimationBuilderM3(enterTransform: Property.Transform, exitTran
         transition: `transform ${Duration.M3['md.sys.motion.duration.medium4']}ms ${Curves.M3.EmphasizedDecelerate} 0ms, opacity ${Duration.M3['md.sys.motion.duration.medium4']}ms ${Curves.M3.Emphasized} 0ms`,
         willChange: 'transition',
       },
+      isTransitionEnd: (e) => {
+        return e.propertyName === 'opacity';
+      }
     },
     entered: {
       style: {
@@ -86,6 +95,9 @@ function standardAnimationBuilderM3(enterTransform: Property.Transform, exitTran
         pointerEvents: "none",
         willChange: 'transform, opacity, transition, pointer-events',
       },
+      isTransitionEnd: (e) => {
+        return e.propertyName === 'opacity';
+      }
     },
   };
 }

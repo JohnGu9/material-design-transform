@@ -1,23 +1,24 @@
-import { createElement, CSSProperties, Fragment, Key, useEffect, useMemo, useRef, useState } from 'react';
 import { useRefComposer } from "react-ref-composer";
 import { createComponent, TagToElementType } from './common';
 import React from 'react';
 
 enum AnimationState { firstFrame, enter, entered, exit };
 
+type RequiredByKey<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 type AnimationTransition = {
-  style: CSSProperties,
+  style: RequiredByKey<React.CSSProperties, 'transition'>,
+  isTransitionEnd: (e: React.TransitionEvent) => boolean,
 };
 
 export type AnimationSteps = {
-  firstFrame: Omit<AnimationTransition, 'duration'>,
+  firstFrame: { style: React.CSSProperties; },
   enter: AnimationTransition,
-  entered: Omit<AnimationTransition, 'duration'>,
+  entered: { style: React.CSSProperties; },
   exit: AnimationTransition,
 };
 
 export type SwitchTransformProps = {
-  keyId?: Key | null | undefined,
+  keyId?: React.Key | null | undefined,
   steps: AnimationSteps,
 
   /* In normal case, this argument is useless because switch animation is usually used to switch between two different type component */
@@ -38,12 +39,12 @@ export function buildSwitchTransform<T extends keyof React.JSX.IntrinsicElements
       onTransitionEnd,
       ...props }, ref) {
       const composeRefs = useRefComposer();
-      const innerRef = useRef<HTMLElement>(null);
-      const state = useMemo(() => {
+      const innerRef = React.useRef<HTMLElement>(null);
+      const state = React.useMemo(() => {
         return { keyId, children, animationState: AnimationState.entered, steps };
         // eslint-disable-next-line react-hooks/exhaustive-deps
       }, []);
-      const [, setTicker] = useState(Number.MIN_SAFE_INTEGER);
+      const [, setTicker] = React.useState(Number.MIN_SAFE_INTEGER);
       const updateNotify = () => setTicker(value => {
         if (value >= Number.MAX_SAFE_INTEGER) { // unlikely
           return Number.MIN_SAFE_INTEGER;
@@ -64,16 +65,16 @@ export function buildSwitchTransform<T extends keyof React.JSX.IntrinsicElements
         // lock steps when enter or exit
       }
 
-      const changed = state.keyId !== keyId;
-      if (!changed) {
+      const isChanged = state.keyId !== keyId;
+      if (!isChanged) {
         state.children = children;
       } // lock children when key changed
 
-      useEffect(() => {
+      React.useEffect(() => {
         // using js timer instead of transition end callback
         // so it no longer support debug when turn on animation slow down in browser dev tools
         // but more robust than before
-        if (changed) {// assert state.animationState !== AnimationState.firstFrame
+        if (isChanged) {// assert state.animationState !== AnimationState.firstFrame
           switch (state.animationState) {
             case AnimationState.firstFrame:
             case AnimationState.exit: {
@@ -85,6 +86,7 @@ export function buildSwitchTransform<T extends keyof React.JSX.IntrinsicElements
           // state.animationState === AnimationState.entered;
           state.animationState = AnimationState.exit;
           updateNotify();
+          return;
         } else /* changed === false */ {
           switch (state.animationState) {
             case AnimationState.enter:
@@ -101,20 +103,25 @@ export function buildSwitchTransform<T extends keyof React.JSX.IntrinsicElements
           // state.animationState === AnimationState.exit
           state.animationState = AnimationState.enter;
           updateNotify();
+          return;
         }
-      }, [changed, state]);
+      }, [isChanged]);
 
       const _onTransitionEnd = React.useCallback((e: React.TransitionEvent<Element>) => {
         if (e.target === innerRef.current) {
           switch (state.animationState) {
             case AnimationState.enter: {
-              state.animationState = AnimationState.entered;
-              updateNotify();
+              if (state.steps.enter.isTransitionEnd(e as React.TransitionEvent)) {
+                state.animationState = AnimationState.entered;
+                updateNotify();
+              }
               break;
             }
             case AnimationState.exit: {
-              state.animationState = AnimationState.firstFrame;
-              updateNotify();
+              if (state.steps.exit.isTransitionEnd(e as React.TransitionEvent)) {
+                state.animationState = AnimationState.firstFrame;
+                updateNotify();
+              }
               break;
             }
           }
@@ -122,14 +129,14 @@ export function buildSwitchTransform<T extends keyof React.JSX.IntrinsicElements
         onTransitionEnd?.(e);
       }, [onTransitionEnd]);
 
-      return createElement(tag, {
+      return React.createElement(tag, {
         style: { ...currentStyle(state.animationState, state.steps), ...style },
         ref: composeRefs(innerRef, ref),
         onTransitionEnd: _onTransitionEnd,
         ...props,
-      }, <Fragment key={forceRebuildAfterSwitched ? state.keyId : undefined}>
+      }, <React.Fragment key={forceRebuildAfterSwitched ? state.keyId : undefined}>
         {state.children}
-      </Fragment>);
+      </React.Fragment>);
     });
 }
 
